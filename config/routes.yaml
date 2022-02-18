@@ -1,3 +1,19 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+getSingleUser:
+    path: /api/users/{id}
+    controller: App\Controller\UserController::getSingle
+updateUser:
+    path: /api/users/update/{id}
+    controller: App\Controller\UserController::editUser
+removeUser:
+    path: /api/users/delete/{id}
+    controller: App\Controller\UserController::removeUser
+ListUsers:
+    path: /api/users
+    controller: App\Controller\UserController::index
+authentication_token:
+    path: /api/login
+    methods: ['POST']
+ 

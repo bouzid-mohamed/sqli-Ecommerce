@@ -1,0 +1,17 @@
+# config/validator/validation.yaml
+App\Entity\User:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
+    properties:
+        email:
+            - Email:
+                message: The email "{{ value }}" is not a valid email.
+        password:
+            - NotBlank: ~
+        phoneNumber:
+            - GreaterThan: 10000000
+            - LessThanOrEqual: 99999999
+       
+        
+          
+            
