@@ -8,9 +8,53 @@ App\Entity\User:
                 message: The email "{{ value }}" is not a valid email.
         password:
             - NotBlank: ~
-        phoneNumber:
+            - Length:
+                min: 5
+        numTel:
             - GreaterThan: 10000000
             - LessThanOrEqual: 99999999
+App\Entity\Client:
+    properties: 
+        nom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        prenom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+App\Entity\Livreur:
+    properties: 
+        nom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        prenom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        typePermis:
+            - NotBlank: ~
+App\Entity\Entreprise:
+    properties: 
+        gouvernerat:
+            - NotBlank: ~
+        delegation:
+            - NotBlank: ~
+App\Entity\Poste:
+    properties: 
+        gouvernerat:
+            - NotBlank: ~
+        delegation:
+            - NotBlank: ~
+
+                
+
+
+        
+                
+
+
        
         
           
