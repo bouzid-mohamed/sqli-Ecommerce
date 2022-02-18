@@ -6,15 +6,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\User;
+use App\Entity\Client;
+use App\Entity\Livreur;
+use App\Entity\Entreprise;
+use App\Entity\Poste;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-
-
-
 
 class UserController extends AbstractController
 {
@@ -51,14 +52,12 @@ class UserController extends AbstractController
     }
 
     /**
-    * @Route("/api/users/add", name="ajout", methods={"POST"})
+    * @Route("/api/client/add", name="ajoutClient", methods={"POST"})
     */
-    public function create(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
+    public function createClient(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
     {
- 
-   
         // On instancie un nouvel article
-        $user = new User();
+        $user = new Client();
 
         // On décode les données envoyées
         $donnees = json_decode($request->getContent());
@@ -67,14 +66,16 @@ class UserController extends AbstractController
         $user->setEmail($donnees->email);
         $user->setRoles($donnees->roles);
         $user->setPassword($donnees->password);
-        $user->setPhoneNumber($donnees->phoneNumber);
-        $user->setFirstName($donnees->firstName);
-        $user->setLastName($donnees->lastName);
-        $user->setAddress($donnees->address);
-        $user->setState($donnees->state);
-        $user->setCity($donnees->city);
-        $user->setCountry($donnees->country);
+        $user->setNumTel($donnees->numTel);
+       
         $user->setPhoto($donnees->photo);
+        $user->setCreatedAt(new \DateTime()) ;
+        $user->setUpdatedAt(null) ;
+        $user->setIsDeleted(null) ;
+        $user->setRestToken("") ;
+        $user->setType(1) ;
+        $user->setNom($donnees->nom) ;
+        $user->setPrenom($donnees->prenom) ;
         $errors = $validator->validate($user);
 
         if (count($errors) > 0) {
@@ -90,9 +91,157 @@ class UserController extends AbstractController
         $entityManager->flush();
 
         // On retourne la confirmation
-        return new Response($user->getId(), 201);
+        return new Response('ok', 201);
         }
     }
+
+    // ajouter compte livreur 
+
+    /**
+    * @Route("/api/livreur/add", name="ajoutLivreur", methods={"POST"})
+    */
+    public function createLivreur(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
+    {
+ 
+   
+        // On instancie un nouvel article
+        $user = new Livreur();
+
+        // On décode les données envoyées
+        $donnees = json_decode($request->getContent());
+
+        // On hydrate l'objet
+        $user->setEmail($donnees->email);
+        $user->setRoles($donnees->roles);
+        $user->setPassword($donnees->password);
+        $user->setNumTel($donnees->numTel);
+       
+        $user->setPhoto($donnees->photo);
+        $user->setCreatedAt(new \DateTime()) ;
+        $user->setUpdatedAt(null) ;
+        $user->setIsDeleted(null) ;
+        $user->setRestToken("") ;
+        $user->setType(1) ;
+        $user->setNom($donnees->nom) ;
+        $user->setPrenom($donnees->prenom) ;
+        $user->setTypePermis($donnees->typePermis) ;
+        $errors = $validator->validate($user);
+
+        if (count($errors) > 0) {
+            return new Response("failed", 400);
+        } else{
+        $plainPassword = $user->getPassword();
+        $encoded = $encoder->encodePassword($user, $plainPassword);
+        $user->setPassword($encoded);
+
+        // On sauvegarde en base
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        // On retourne la confirmation
+        return new Response('ok', 201);
+        }
+    }
+
+    //Ajouter un compte Entreprise 
+
+     /**
+    * @Route("/api/entreprise/add", name="ajoutEntreprise", methods={"POST"})
+    */
+    public function createEntreprise(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
+    {
+        // On instancie un nouvel article
+        $user = new Entreprise();
+
+        // On décode les données envoyées
+        $donnees = json_decode($request->getContent());
+
+        // On hydrate l'objet
+        $user->setEmail($donnees->email);
+        $user->setRoles($donnees->roles);
+        $user->setPassword($donnees->password);
+        $user->setNumTel($donnees->numTel);
+       
+        $user->setPhoto($donnees->photo);
+        $user->setCreatedAt(new \DateTime()) ;
+        $user->setUpdatedAt(null) ;
+        $user->setIsDeleted(null) ;
+        $user->setRestToken("") ;
+        $user->setType(1) ;
+        $user->setGouvernerat($donnees->gouvernerat) ;
+        $user->setDelegation($donnees->delegation) ;
+        $user->setNote($donnees->note) ;
+        $errors = $validator->validate($user);
+
+        if (count($errors) > 0) {
+            return new Response("failed", 400);
+        } else{
+        $plainPassword = $user->getPassword();
+        $encoded = $encoder->encodePassword($user, $plainPassword);
+        $user->setPassword($encoded);
+
+        // On sauvegarde en base
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        
+
+        // On retourne la confirmation
+        return new Response('ok', 201);
+        }
+    }
+
+
+    //Ajouter un compte Poste 
+
+     /**
+    * @Route("/api/poste/add", name="ajoutPoste", methods={"POST"})
+    */
+    public function createPoste(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
+    {
+        // On instancie un nouvel article
+        $user = new Poste();
+
+        // On décode les données envoyées
+        $donnees = json_decode($request->getContent());
+
+        // On hydrate l'objet
+        $user->setEmail($donnees->email);
+        $user->setRoles($donnees->roles);
+        $user->setPassword($donnees->password);
+        $user->setNumTel($donnees->numTel);
+       
+        $user->setPhoto($donnees->photo);
+        $user->setCreatedAt(new \DateTime()) ;
+        $user->setUpdatedAt(null) ;
+        $user->setIsDeleted(null) ;
+        $user->setRestToken("") ;
+        $user->setType(1) ;
+        $user->setGouvernerat($donnees->gouvernerat) ;
+        $user->setDelegation($donnees->delegation) ;
+        $errors = $validator->validate($user);
+
+        if (count($errors) > 0) {
+            return new Response("failed", 400);
+        } else{
+        $plainPassword = $user->getPassword();
+        $encoded = $encoder->encodePassword($user, $plainPassword);
+        $user->setPassword($encoded);
+
+        // On sauvegarde en base
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        // On retourne la confirmation
+        return new Response('ok', 201);
+        }
+    }
+
+
+
 
 
     public function getSingle(User $user)
@@ -129,29 +278,40 @@ class UserController extends AbstractController
         // On hydrate l'objet
         $user->setEmail($donnees->email);
         $user->setRoles($donnees->roles);
-        //$user->setPassword($donnees->password);
-        $user->setPhoneNumber($donnees->phoneNumber);
-        $user->setFirstName($donnees->firstName);
-        $user->setLastName($donnees->lastName);
-        $user->setAddress($donnees->address);
-        $user->setState($donnees->state);
-        $user->setCity($donnees->city);
-        $user->setCountry($donnees->country);
+      
+        $user->setNumTel($donnees->numTel);
+       
         $user->setPhoto($donnees->photo);
+        $user->setCreatedAt(new \DateTime()) ;
+        $user->setUpdatedAt(null) ;
+        $user->setIsDeleted(null) ;
+        $user->setRestToken("") ;
+        // si il s agit d un client 
+        if(get_class($user) == get_class($l = new Client())){
+            $user->setNom($donnees->nom) ; 
+            $user->setPrenom($donnees->prenom) ;
 
+        } elseif (get_class($user) == get_class($l = new Livreur())){  // si il s agit d un Livreur
+            $user->setNom($donnees->nom) ;
+            $user->setPrenom($donnees->prenom) ;
+            $user->setTypePermis($donnees->typePermis) ;
+        } elseif (get_class($user) == get_class($l = new Entreprise())){ // si il s agit d une entreprise
+            $user->setGouvernerat($donnees->gouvernerat) ;
+            $user->setDelegation($donnees->delegation) ;
+            $user->setNote($donnees->note) ;
+        }  elseif (get_class($user) == get_class($l = new Poste())){   // si il s agit d une poste
+            $user->setGouvernerat($donnees->gouvernerat) ;
+            $user->setDelegation($donnees->delegation) ;
+        }
         $errors = $validator->validate($user);
-
         if (count($errors) > 0) {
             return new Response('Failed', 401);
-
         }else {
-
         // On sauvegarde en base
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
         return new Response('ok', $code);
-
 
         }  
     }

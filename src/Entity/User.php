@@ -6,8 +6,11 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+
+
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @ORM\InheritanceType("SINGLE_TABLE")
  */
 class User implements UserInterface
 {
@@ -34,47 +37,42 @@ class User implements UserInterface
      */
     private $password;
 
-     /**
-     * @ORM\Column(type="integer")
-     */
-    private $phoneNumber;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-
-    private $firstName;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $lastName;
-
-
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $address;
-    
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $state ;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $city ;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $country ;
-
     /**
      * @ORM\Column(type="string")
      */
     private $photo ;
+
+     /**
+     * @ORM\Column(type="integer")
+     */
+    private $numTel;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $isDeleted;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=false)
+     */
+    private $created_at;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+
+    private $updated_at;
+
+     /**
+     * @ORM\Column(type="integer")
+     */
+    private $type;
+
+
+     /**
+     * @ORM\Column(type="string")
+     */
+    private $restToken ;
 
 
     
@@ -84,79 +82,17 @@ class User implements UserInterface
         return $this->id;
     }
 
-    public function getFirstName(): ?string
+    public function getType(): ?int
     {
-        return $this->firstName;
+        return $this->type;
     }
 
-    public function setFirstName(string $firstName): self
-    {
-        $this->firstName = $firstName;
 
+    public function setType(string $type): self
+    {
+        $this->type= $type;
         return $this;
     }
-
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(string $lastName): self
-    {
-        $this->lastName = $lastName;
-
-        return $this;
-    }
-
-    public function getAddress(): ?string
-    {
-        return $this->address;
-    }
-
-    public function setAddress(string $address): self
-    {
-        $this->address= $address;
-
-        return $this;
-    }
-
-
-    public function getState(): ?string
-    {
-        return $this->state;
-    }
-
-    public function setState(string $state): self
-    {
-        $this->state= $state;
-
-        return $this;
-    }
-
-    public function getCity(): ?string
-    {
-        return $this->city;
-    }
-
-    public function setCity(string $city): self
-    {
-        $this->city= $city;
-
-        return $this;
-    }
-
-    public function getCountry(): ?string
-    {
-        return $this->country;
-    }
-
-    public function setCountry(string $country): self
-    {
-        $this->country= $country;
-
-        return $this;
-    }
-
 
     public function getPhoto(): ?string
     {
@@ -166,6 +102,18 @@ class User implements UserInterface
     public function setPhoto(string $photo): self
     {
         $this->photo= $photo;
+
+        return $this;
+    }
+
+    public function getRestToken(): ?string
+    {
+        return $this->restToken ;
+    }
+
+    public function setRestToken(string $restToken): self
+    {
+        $this->restToken= $restToken;
 
         return $this;
     }
@@ -185,14 +133,14 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getPhoneNumber(): ?int
+    public function getNumTel(): ?int
     {
-        return $this->phoneNumber;
+        return $this->numTel;
     }
 
-    public function setPhoneNumber(int $phoneNumber): self
+    public function setNumTel(int $numTel): self
     {
-        $this->phoneNumber = $phoneNumber;
+        $this->numTel = $numTel;
         return $this;
     }
 
@@ -239,6 +187,41 @@ class User implements UserInterface
 
         return $this;
     }
+
+    public function getIsDeleted(): ?\DateTimeInterface
+    {
+        return $this->isDeleted;
+    }
+    public function setIsDeleted(?\DateTimeInterface  $isDeleted): self
+    {
+        $this->isDeleted = $isDeleted;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface  $created_at): self
+    {
+        $this->created_at = $created_at;
+        return $this;
+    }
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface  $updated_at): self
+    {
+        $this->updated_at=  $updated_at;
+        return $this;
+    }
+
+
+
 
     /**
      * Returning a salt is only needed, if you are not using a modern
