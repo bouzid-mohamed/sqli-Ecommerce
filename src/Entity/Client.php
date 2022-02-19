@@ -12,12 +12,7 @@ use App\Entity\User;
  */
 class Client extends User
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -29,10 +24,7 @@ class Client extends User
      */
     private $prenom;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+
 
     public function getNom(): ?string
     {

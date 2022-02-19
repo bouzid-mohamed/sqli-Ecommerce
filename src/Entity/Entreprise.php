@@ -10,12 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Entreprise extends User
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -32,10 +26,7 @@ class Entreprise extends User
      */
     private $note;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+  
 
     public function getGouvernerat(): ?string
     {

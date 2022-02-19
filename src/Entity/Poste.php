@@ -10,12 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Poste extends User
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -27,10 +22,7 @@ class Poste extends User
      */
     private $delegation;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+   
 
     public function getGouvernerat(): ?string
     {

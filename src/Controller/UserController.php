@@ -16,9 +16,21 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Security;
+
 
 class UserController extends AbstractController
 {
+
+    /**
+     * @param Security
+     */
+    private $_security;
+
+    public function __construct(Security $security)
+    {
+        $this->_security = $security;
+    }
 
     public function index(): Response
     {
@@ -268,22 +280,21 @@ class UserController extends AbstractController
         $code = 200;
 
         // Si l'article n'est pas trouvé
-        if(!$user){
-            // On instancie un nouvel article
-            $user = new User();
-            // On change le code de réponse
-            $code = 201 ;
-        }
+        if(!$user ||  $this->_security->getUser()->getId() != $user->getId() ){
+            // On interdit l accés
+            $code = 401;
+            return new Response('error', $code);
+        }else {
+
+
 
         // On hydrate l'objet
         $user->setEmail($donnees->email);
         $user->setRoles($donnees->roles);
-      
         $user->setNumTel($donnees->numTel);
-       
         $user->setPhoto($donnees->photo);
-        $user->setCreatedAt(new \DateTime()) ;
-        $user->setUpdatedAt(null) ;
+        //$user->setCreatedAt() ;
+        $user->setUpdatedAt(new \DateTime()) ;
         $user->setIsDeleted(null) ;
         $user->setRestToken("") ;
         // si il s agit d un client 
@@ -313,7 +324,8 @@ class UserController extends AbstractController
         $entityManager->flush();
         return new Response('ok', $code);
 
-        }  
+        } 
+    } 
     }
 
     public function removeUser(User $user)
@@ -323,9 +335,6 @@ class UserController extends AbstractController
     $entityManager->flush();
     return new Response('ok');
     }
-
-
-
 
 
 
