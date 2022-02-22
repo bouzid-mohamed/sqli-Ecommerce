@@ -51,6 +51,11 @@ class Promotion
      * @ORM\Column(type="integer")
      */
     private $pourcentage;
+    
+    /**
+     * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
+     */
+    private $Entreprise;
 
     public function getId(): ?int
     {
@@ -137,6 +142,18 @@ class Promotion
     public function setPourcentage(int $pourcentage): self
     {
         $this->pourcentage = $pourcentage;
+
+        return $this;
+    }
+
+    public function getEntreprise(): ?Entreprise
+    {
+        return $this->Entreprise;
+    }
+   
+    public function setEntreprise(?Entreprise $e): self
+    {
+        $this->Entreprise= $e;
 
         return $this;
     }

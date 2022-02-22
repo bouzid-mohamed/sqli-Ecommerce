@@ -54,7 +54,7 @@ class Entreprise extends User
 
     public function getNote(): ?int
     {
-        return $this->note;
+        return $this->note; 
     }
 
     public function setNote(int $note): self

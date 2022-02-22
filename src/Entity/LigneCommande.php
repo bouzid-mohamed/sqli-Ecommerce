@@ -22,6 +22,17 @@ class LigneCommande
      */
     private $quantite;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Commande::class, inversedBy="lignesCommande")
+     */
+    private $commande;
+
+     /**
+     * @ORM\ManyToOne(targetEntity=Stock::class, inversedBy="stoks")
+     */
+    private $stock;
+
+   
     public function getId(): ?int
     {
         return $this->id;
@@ -38,4 +49,30 @@ class LigneCommande
 
         return $this;
     }
+
+    public function getCommande(): ?Commande
+    {
+        return $this->commande;
+    }
+
+    public function setCommande(?Commande $commande): self
+    {
+        $this->commande = $commande;
+
+        return $this;
+    }
+
+    public function getStock(): ?Stock
+    {
+        return $this->stock;
+    }
+
+    public function setStock(?Commande $stock): self
+    {
+        $this->stock = $stock;
+
+        return $this;
+    }
+
+    
 }

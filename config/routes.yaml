@@ -16,4 +16,7 @@ ListUsers:
 authentication_token:
     path: /api/login
     methods: ['POST']
+addBon:
+    path: /api/entreprise/addBon
+    controller: App\Controller\BonController::addBon
  

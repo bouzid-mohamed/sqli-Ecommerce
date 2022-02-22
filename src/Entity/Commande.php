@@ -17,6 +17,7 @@ class Commande
      */
     private $id;
 
+
     /**
      * @ORM\Column(type="string", length=255)
      */
@@ -61,6 +62,18 @@ class Commande
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
     private $updatedAt;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Bon::class, inversedBy="commande")
+     */
+    private $bon;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="commandeClient")
+     */
+    private $client;
+
+    
 
     public function getId(): ?int
     {
@@ -174,4 +187,30 @@ class Commande
 
         return $this;
     }
+
+    public function getBon(): ?Bon
+    {
+        return $this->bon;
+    }
+
+    public function setVoucher(?Bon $bon): self
+    {
+        $this->bon  = $bon;
+
+        return $this;
+    }
+
+    public function getClient(): ?Client
+    {
+        return $this->client;
+    }
+
+    public function setClient(?Client $client): self
+    {
+        $this->client  = $client;
+
+        return $this;
+    }
+
+ 
 }

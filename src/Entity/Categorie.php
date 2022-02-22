@@ -27,6 +27,16 @@ class Categorie
      */
     private $deletedAt;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="fils")
+     */
+    private $catFils;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprise")
+     */
+    private $entreprise;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -52,6 +62,30 @@ class Categorie
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): self
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function getCatFils(): ?Categorie
+    {
+        return $this->catFils;
+    }
+   
+    public function setCatFils(?Categorie $c): self
+    {
+        $this->catFils= $c;
+
+        return $this;
+    }
+
+    public function getEntreprise(): ?Entreprise
+    {
+        return $this->entreprise;
+    }
+
+    public function setEntreprise(?Entreprise $entreprise): self
+    {
+        $this->entreprise = $entreprise;
 
         return $this;
     }

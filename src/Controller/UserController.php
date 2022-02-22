@@ -64,7 +64,7 @@ class UserController extends AbstractController
     }
 
     /**
-    * @Route("/api/client/add", name="ajoutClient", methods={"POST"})
+    * @Route("/client/add", name="ajoutClient", methods={"POST"})
     */
     public function createClient(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
     {
@@ -76,7 +76,7 @@ class UserController extends AbstractController
 
         // On hydrate l'objet
         $user->setEmail($donnees->email);
-        $user->setRoles($donnees->roles);
+        $user->setRoles(['ROLE_CLIENT']);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
        
@@ -110,7 +110,7 @@ class UserController extends AbstractController
     // ajouter compte livreur 
 
     /**
-    * @Route("/api/livreur/add", name="ajoutLivreur", methods={"POST"})
+    * @Route("/api/poste/addlivreur", name="ajoutLivreur", methods={"POST"})
     */
     public function createLivreur(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
     {
@@ -124,7 +124,7 @@ class UserController extends AbstractController
 
         // On hydrate l'objet
         $user->setEmail($donnees->email);
-        $user->setRoles($donnees->roles);
+        $user->setRoles([ "ROLE_LIVREUR" ]);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
        
@@ -159,7 +159,7 @@ class UserController extends AbstractController
     //Ajouter un compte Entreprise 
 
      /**
-    * @Route("/api/entreprise/add", name="ajoutEntreprise", methods={"POST"})
+    * @Route("/entreprise/add", name="ajoutEntreprise", methods={"POST"})
     */
     public function createEntreprise(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
     {
@@ -171,7 +171,7 @@ class UserController extends AbstractController
 
         // On hydrate l'objet
         $user->setEmail($donnees->email);
-        $user->setRoles($donnees->roles);
+        $user->setRoles(['ROLE_ENTREPRISE']);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
        
@@ -209,7 +209,7 @@ class UserController extends AbstractController
     //Ajouter un compte Poste 
 
      /**
-    * @Route("/api/poste/add", name="ajoutPoste", methods={"POST"})
+    * @Route("/api/poste/addposte", name="ajoutPoste", methods={"POST"})
     */
     public function createPoste(Request $request,ValidatorInterface $validator,UserPasswordEncoderInterface $encoder) : Response
     {
@@ -221,10 +221,9 @@ class UserController extends AbstractController
 
         // On hydrate l'objet
         $user->setEmail($donnees->email);
-        $user->setRoles($donnees->roles);
+        $user->setRoles([ "ROLE_POSTE" ]);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
-       
         $user->setPhoto($donnees->photo);
         $user->setCreatedAt(new \DateTime()) ;
         $user->setUpdatedAt(null) ;
@@ -285,15 +284,11 @@ class UserController extends AbstractController
             $code = 401;
             return new Response('error', $code);
         }else {
-
-
-
         // On hydrate l'objet
         $user->setEmail($donnees->email);
         $user->setRoles($donnees->roles);
         $user->setNumTel($donnees->numTel);
         $user->setPhoto($donnees->photo);
-        //$user->setCreatedAt() ;
         $user->setUpdatedAt(new \DateTime()) ;
         $user->setIsDeleted(null) ;
         $user->setRestToken("") ;

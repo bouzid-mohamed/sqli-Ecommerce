@@ -47,6 +47,21 @@ class Produit
      */
     private $deletedAt;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
+     */
+    private $Entreprise;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Promotion::class, inversedBy="promotions")
+     */
+    private $promotion;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="categories")
+     */
+    private $categorie ;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -120,6 +135,41 @@ class Produit
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): self
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+    public function getEntreprise(): ?Entreprise
+    {
+        return $this->Entreprise;
+    }
+   
+    public function setEntreprise(?Entreprise $e): self
+    {
+        $this->Entreprise= $e;
+
+        return $this;
+    }
+
+    public function getPromotion(): ?Promotion
+    {
+        return $this->promotion;
+    }
+   
+    public function setPromotion(?Promotion $p): self
+    {
+        $this->promotion= $p;
+
+        return $this;
+    }
+
+    public function getCategorie(): ?Categorie
+    {
+        return $this->categorie;
+    }
+   
+    public function setCategorie(?Categorie $c): self
+    {
+        $this->categorie = $c;
 
         return $this;
     }

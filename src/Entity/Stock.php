@@ -32,6 +32,16 @@ class Stock
      */
     private $quantite;
 
+     /**
+     * @ORM\ManyToOne(targetEntity=Produit::class, inversedBy="produits")
+     */
+    private $produit;
+
+     /**
+     * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
+     */
+    private $Entreprise;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -69,6 +79,30 @@ class Stock
     public function setQuantite(int $quantite): self
     {
         $this->quantite = $quantite;
+
+        return $this;
+    }
+
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
+   
+    public function setProduit(?Produit $p): self
+    {
+        $this->produit= $p;
+
+        return $this;
+    }
+
+    public function getEntreprise(): ?Entreprise
+    {
+        return $this->Entreprise;
+    }
+   
+    public function setEntreprise(?Entreprise $e): self
+    {
+        $this->Entreprise= $e;
 
         return $this;
     }

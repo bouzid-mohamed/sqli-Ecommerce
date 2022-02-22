@@ -27,6 +27,11 @@ class Bon
      */
     private $reduction;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprise")
+     */
+    private $entreprise;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -52,6 +57,18 @@ class Bon
     public function setReduction(int $reduction): self
     {
         $this->reduction = $reduction;
+
+        return $this;
+    }
+
+    public function getEntreprise(): ?Entreprise
+    {
+        return $this->entreprise;
+    }
+
+    public function setEntreprise(?Entreprise $entreprise): self
+    {
+        $this->entreprise = $entreprise;
 
         return $this;
     }
