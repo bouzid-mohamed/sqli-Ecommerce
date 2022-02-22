@@ -53,7 +53,8 @@ class Produit
     private $Entreprise;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Promotion::class, inversedBy="promotions")
+     * @ORM\ManyToOne(targetEntity=Promotion::class,  inversedBy="produits", cascade={"persist"})
+     * @ORM\JoinColumn(name="promotion_id", referencedColumnName="id", nullable=false)
      */
     private $promotion;
 

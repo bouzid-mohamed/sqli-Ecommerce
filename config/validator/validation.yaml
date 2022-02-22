@@ -56,7 +56,39 @@ App\Entity\Bon:
         reduction:
             - NotBlank: ~
             - GreaterThan: 1
-      
+App\Entity\Categorie:
+    properties: 
+        nom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+App\Entity\Promotion:
+    properties: 
+        nom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        description:
+            - NotBlank: ~
+            - Length:
+                min: 5
+        banniere:
+            - NotBlank: ~
+            - Length:
+                min: 3
+        dateDebut:
+            - NotBlank: ~
+        dateFin:
+            - NotBlank: ~
+        pourcentage:
+            - NotBlank: ~
+            - GreaterThan: 1
+            
+        
+        
+        
+        
+
 
                 
 

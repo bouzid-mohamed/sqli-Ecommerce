@@ -37,6 +37,8 @@ class Categorie
      */
     private $entreprise;
 
+    
+
     public function getId(): ?int
     {
         return $this->id;

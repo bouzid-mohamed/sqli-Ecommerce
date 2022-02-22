@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PromotionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -40,10 +42,10 @@ class Promotion
     /**
      * @ORM\Column(type="datetime")
      */
-    private $deteFin;
+    private $dateFin;
 
     /**
-     * @ORM\Column(type="datetime_immutable", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $deletedAt;
 
@@ -55,7 +57,17 @@ class Promotion
     /**
      * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
      */
-    private $Entreprise;
+    private $entreprise;
+
+     /**
+     * @ORM\OneToMany(targetEntity="Produit", mappedBy="promotion", cascade={"persist", "remove"})
+     */
+    private $produits;
+
+    public function __construct()
+    {
+        $this->produits = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -98,36 +110,36 @@ class Promotion
         return $this;
     }
 
-    public function getDateDebut(): ?\DateTimeInterface
+    public function getDateDebut(): ?\DateTime
     {
         return $this->dateDebut;
     }
 
-    public function setDateDebut(\DateTimeInterface $dateDebut): self
+    public function setDateDebut(\DateTime $dateDebut): self
     {
         $this->dateDebut = $dateDebut;
 
         return $this;
     }
 
-    public function getDeteFin(): ?\DateTimeInterface
+    public function getDateFin(): ?\DateTime
     {
-        return $this->deteFin;
+        return $this->dateFin;
     }
 
-    public function setDeteFin(\DateTimeInterface $deteFin): self
+    public function setDateFin(\DateTime $dateFin): self
     {
-        $this->deteFin = $deteFin;
+        $this->dateFin = $dateFin;
 
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeImmutable
+    public function getDeletedAt(): ?\DateTime
     {
         return $this->deletedAt;
     }
 
-    public function setDeletedAt(?\DateTimeImmutable $deletedAt): self
+    public function setDeletedAt(?\DateTime $deletedAt): self
     {
         $this->deletedAt = $deletedAt;
 
@@ -148,13 +160,30 @@ class Promotion
 
     public function getEntreprise(): ?Entreprise
     {
-        return $this->Entreprise;
+        return $this->entreprise;
     }
    
     public function setEntreprise(?Entreprise $e): self
     {
-        $this->Entreprise= $e;
+        $this->entreprise= $e;
 
         return $this;
+    }
+
+    public function addProduit(Produit $produit): self
+    {
+        $this->produits[] = $produit;
+ 
+        return $this;
+    }
+ 
+    public function removeCountry(Produit $produit): bool
+    {
+        return $this->produits->removeElement($produit);
+    }
+ 
+    public function getProduits(): Collection
+    {
+        return $this->produits;
     }
 }

@@ -58,4 +58,10 @@ editCategorie:
 deleteCategorie:
     path: /api/entreprise/categories/deleteCategorie/{id}
     controller: App\Controller\CategorieController::deleteCategorie
+addPromotion:
+    path: /api/entreprise/promotion/addpromotion
+    controller: App\Controller\PromotionController::addPromotion
+listePromotion:
+    path: /api/entreprise/promotion
+    controller: App\Controller\PromotionController::index
  
