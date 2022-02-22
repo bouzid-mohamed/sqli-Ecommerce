@@ -41,3 +41,5 @@ security:
         - { path: ^/api/users, roles: IS_AUTHENTICATED_FULLY }
         - { path: '/api/poste', roles: [ROLE_POSTE] }
         - { path: '/api/entreprise', roles: [ROLE_ENTREPRISE] }
+        - { path: '/api/client', roles: [ROLE_CLIENT] }
+        - { path: '/api/livreur', roles: [ROLE_LIVREUR] }

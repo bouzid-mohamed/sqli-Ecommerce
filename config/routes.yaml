@@ -4,19 +4,43 @@
 getSingleUser:
     path: /api/users/{id}
     controller: App\Controller\UserController::getSingle
-updateUser:
-    path: /api/users/update/{id}
-    controller: App\Controller\UserController::editUser
+updateEntreprise:
+    path: /api/entreprise/update/{id}
+    controller: App\Controller\EntrepriseController::editEntreprise
+updateClient:
+    path: /api/client/update/{id}
+    controller: App\Controller\ClientController::editClient
+updateLivreur:
+    path: /api/livreur/update/{id}
+    controller: App\Controller\LivreurController::editLivreur
+updatePoste:
+    path: /api/poste/update/{id}
+    controller: App\Controller\PosteController::editPoste
 removeUser:
     path: /api/users/delete/{id}
     controller: App\Controller\UserController::removeUser
-ListUsers:
-    path: /api/users
-    controller: App\Controller\UserController::index
+ListEntreprise:
+    path: /entreprises
+    controller: App\Controller\EntrepriseController::index
+ListClient:
+    path: /clients
+    controller: App\Controller\ClientController::index
+ListLivreur:
+    path: api/poste/livreurs
+    controller: App\Controller\LivreurController::index
+ListPoste:
+    path: api/poste
+    controller: App\Controller\PosteController::index
 authentication_token:
     path: /api/login
     methods: ['POST']
 addBon:
     path: /api/entreprise/addBon
     controller: App\Controller\BonController::addBon
+updateBon:
+    path: /api/entreprise/updatebon/{id}
+    controller: App\Controller\BonController::updateBon
+deleteBon:
+    path: /api/entreprise/deletebon/{id}
+    controller: App\Controller\BonController::deleteBon
  

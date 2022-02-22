@@ -47,6 +47,16 @@ App\Entity\Poste:
             - NotBlank: ~
         delegation:
             - NotBlank: ~
+App\Entity\Bon:
+    properties: 
+        code:
+            - NotBlank: ~
+            - Length:
+                min: 5
+        reduction:
+            - NotBlank: ~
+            - GreaterThan: 1
+      
 
                 
 
