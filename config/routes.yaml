@@ -35,12 +35,27 @@ authentication_token:
     path: /api/login
     methods: ['POST']
 addBon:
-    path: /api/entreprise/addBon
+    path: /api/entreprise/bon/addBon
     controller: App\Controller\BonController::addBon
 updateBon:
-    path: /api/entreprise/updatebon/{id}
+    path: /api/entreprise/bon/updatebon/{id}
     controller: App\Controller\BonController::updateBon
 deleteBon:
-    path: /api/entreprise/deletebon/{id}
+    path: /api/entreprise/bon/deletebon/{id}
     controller: App\Controller\BonController::deleteBon
+listBon:
+    path: /api/entreprise/bon
+    controller: App\Controller\BonController::index
+addCategorie:
+    path: /api/entreprise/categorie/addCategorie
+    controller: App\Controller\CategorieController::addCategorie
+listeCategories:
+    path: /api/entreprise/categories
+    controller: App\Controller\CategorieController::index
+editCategorie:
+    path: /api/entreprise/categories/updatecategorie/{id}
+    controller: App\Controller\CategorieController::updateCategorie
+deleteCategorie:
+    path: /api/entreprise/categories/deleteCategorie/{id}
+    controller: App\Controller\CategorieController::deleteCategorie
  

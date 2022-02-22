@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Bon;
+use App\Entity\Categorie;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,8 +13,9 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
-class BonController extends AbstractController
+class CategorieController extends AbstractController
 {
+
     /**
      * @param Security
      */
@@ -27,7 +28,7 @@ class BonController extends AbstractController
 
     public function index(): Response
     {
-        $bons = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId() ));
+        $categories = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()));
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -39,7 +40,7 @@ class BonController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
 
         // On convertit en json
-        $jsonContent = $serializer->serialize($bons, 'json', [
+        $jsonContent = $serializer->serialize($categories, 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             }
@@ -54,30 +55,38 @@ class BonController extends AbstractController
         // On envoie la réponse
         return $response;
     }
-    // ajouter un bon nb : apres l auth en tant que entreprise
-    public function addBon(Request $request, ValidatorInterface $validator): Response
+
+    // ajouter une categorie nb : apres l auth en tant que entreprise
+    public function addCategorie(Request $request, ValidatorInterface $validator): Response
     {
-        $bon = new Bon();
+        $categorie = new Categorie();
         // On décode les données envoyées
         $donnees = json_decode($request->getContent());
         // On hydrate l'objet
-        $bon->setCode($donnees->code);
-        $bon->setReduction($donnees->reduction);
-        $bon->setEntreprise($this->_security->getUser());
-        $errors = $validator->validate($bon);
+        $entityManager = $this->getDoctrine()->getManager();
+
+        if ($donnees->categoriePere != null) {
+            $cat = $entityManager->getRepository(Categorie::class)->find($donnees->categoriePere);
+            $categorie->setCatFils($cat);
+        } else {
+            $categorie->setCatFils(null);
+        }
+        $categorie->setEntreprise($this->_security->getUser());
+        $categorie->setNom($donnees->nom);
+        $errors = $validator->validate($categorie);
         if (count($errors) > 0) {
             return new Response("failed", 400);
         } else {
             // On sauvegarde en base
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($bon);
+            $entityManager->persist($categorie);
             $entityManager->flush();
             // On retourne la confirmation
-            return new Response($bon->getId(), 201);
+            return new Response($categorie->getId(), 201);
         }
     }
-    // modifier un bon
-    public function updateBon(?Bon $bon, Request $request, ValidatorInterface $validator): Response
+
+    // update categorie 
+    public function updateCategorie(?Categorie $categorie, Request $request, ValidatorInterface $validator): Response
     {
         $donnees = json_decode($request->getContent());
 
@@ -85,39 +94,50 @@ class BonController extends AbstractController
         $code = 200;
 
         // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
-        if (!$bon ||  $this->_security->getUser() != $bon->getEntreprise()) {
+        if (!$categorie ||  $this->_security->getUser() != $categorie->getEntreprise()) {
             // On interdit l accés
             $code = 403;
             return new Response('error', $code);
         } else {
             // On hydrate l'objet
-            $bon->setCode($donnees->code);
-            $bon->setReduction($donnees->reduction);
+            $entityManager = $this->getDoctrine()->getManager();
 
-            $errors = $validator->validate($bon);
+            if ($donnees->categoriePere != null) {
+                $cat = $entityManager->getRepository(Categorie::class)->find(array('id' => ($donnees->categoriePere)));
+                $categorie->setCatFils($cat);
+            } else {
+                $categorie->setCatFils(null);
+            }
+            $categorie->setEntreprise($this->_security->getUser());
+            $categorie->setNom($donnees->nom);
+
+            $errors = $validator->validate($categorie);
             if (count($errors) > 0) {
                 return new Response('Failed', 401);
             } else {
                 // On sauvegarde en base
                 $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($bon);
+                $entityManager->persist($categorie);
                 $entityManager->flush();
                 return new Response('ok', $code);
             }
         }
     }
 
-    public function deleteBon(Bon $bon)
+    // remove categorie
+    public function deleteCategorie(?Categorie $categorie)
     {
-        if (!$bon ||  $this->_security->getUser() != $bon->getEntreprise()) {
+        $code = 200;
+        if (!$categorie ||  $this->_security->getUser()->getId() != $categorie->getEntreprise()->getId()) {
             // On interdit l accés
             $code = 403;
             return new Response('error', $code);
         } else {
+            $categorie->setDeletedAt(new \DateTime());
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($bon);
+            $entityManager->persist($categorie);
             $entityManager->flush();
-            return new Response('ok', 200);
+            return new Response('ok', $code);
         }
     }
 }
