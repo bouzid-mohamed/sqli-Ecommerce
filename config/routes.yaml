@@ -64,4 +64,34 @@ addPromotion:
 listePromotion:
     path: /api/entreprise/promotion
     controller: App\Controller\PromotionController::index
+editPromotion:
+    path: /api/entreprise/promotion/updatepromotion/{id}
+    controller: App\Controller\PromotionController::updatePromotion
+deletePromotion:
+    path: /api/entreprise/promotion/deletepromotion/{id}
+    controller: App\Controller\PromotionController::deletePromotion
+addStock:
+    path: /api/entreprise/stock/addstock
+    controller: App\Controller\StockController::addStock
+updateStock:
+    path: /api/entreprise/stock/updatestock/{id}
+    controller: App\Controller\StockController::updateStock
+listeStock:
+    path: /api/entreprise/stock
+    controller: App\Controller\StockController::index
+deleteStock:
+    path: /api/entreprise/stock/deletestock/{id}
+    controller: App\Controller\StockController::deleteStock
+addProduit:
+    path: /api/entreprise/produit/addproduit
+    controller: App\Controller\ProduitController::addProduit
+updateProduit:
+    path: /api/entreprise/produit/updateProduit/{id}
+    controller: App\Controller\ProduitController::updateProduit
+listeProduit:
+    path: /api/entreprise/produit
+    controller: App\Controller\ProduitController::index
+deleteProduit:
+    path: /api/entreprise/produit/delete/{id}
+    controller: App\Controller\ProduitController::deleteProduit
  

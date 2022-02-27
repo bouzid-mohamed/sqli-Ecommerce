@@ -154,7 +154,6 @@ class Promotion
     public function setPourcentage(int $pourcentage): self
     {
         $this->pourcentage = $pourcentage;
-
         return $this;
     }
 

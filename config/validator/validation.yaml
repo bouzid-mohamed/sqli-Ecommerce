@@ -57,13 +57,15 @@ App\Entity\Bon:
             - NotBlank: ~
             - GreaterThan: 1
 App\Entity\Categorie:
-    properties: 
+    properties:
         nom:
             - NotBlank: ~
             - Length:
                 min: 2
 App\Entity\Promotion:
-    properties: 
+    properties:
+        id:
+        - NotBlank: ~
         nom:
             - NotBlank: ~
             - Length:
@@ -83,6 +85,21 @@ App\Entity\Promotion:
         pourcentage:
             - NotBlank: ~
             - GreaterThan: 1
+App\Entity\Produit:
+    properties:
+        categorie:
+            - NotNull: ~
+App\Entity\Stock:
+    properties:
+        produit:
+            - NotNull: ~
+        nom:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        
+  
+
             
         
         

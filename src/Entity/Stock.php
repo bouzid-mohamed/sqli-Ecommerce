@@ -32,6 +32,11 @@ class Stock
      */
     private $quantite;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $deletedAt;
+
      /**
      * @ORM\ManyToOne(targetEntity=Produit::class, inversedBy="produits")
      */
@@ -103,6 +108,18 @@ class Stock
     public function setEntreprise(?Entreprise $e): self
     {
         $this->Entreprise= $e;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTime
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTime $deletedAt): self
+    {
+        $this->deletedAt = $deletedAt;
 
         return $this;
     }

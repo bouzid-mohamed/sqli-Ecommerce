@@ -82,4 +82,56 @@ class PromotionController extends AbstractController
             return new Response($promotion->getId(), 201);
         }
     }
+
+    // modifier une promotion
+    public function updatePromotion(?Promotion $promotion, Request $request, ValidatorInterface $validator): Response
+    {
+        $donnees = json_decode($request->getContent());
+
+        // On initialise le code de réponse
+        $code = 200;
+
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        if (!$promotion ||  $this->_security->getUser() != $promotion->getEntreprise()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            // On hydrate l'objet
+            $promotion->setNom($donnees->nom);
+            $promotion->setDescription($donnees->description);
+            $promotion->setBanniere($donnees->banniere);
+            $promotion->setDateDebut(new \DateTime($donnees->dateDebut));
+            $promotion->setDateFin(new \DateTime($donnees->dateFin));
+            $promotion->setDeletedAt(null);
+            $promotion->setPourcentage($donnees->pourcentage);
+            $promotion->setEntreprise($this->_security->getUser());
+            $errors = $validator->validate($promotion);
+            if (count($errors) > 0) {
+                return new Response('Failed', 401);
+            } else {
+                // On sauvegarde en base
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($promotion);
+                $entityManager->flush();
+                return new Response('ok', $code);
+            }
+        }
+    }
+    // remove promotion
+    public function deletePromotion(?Promotion $promotion)
+    {
+        $code = 200;
+        if (!$promotion ||  $this->_security->getUser()->getId() != $promotion->getEntreprise()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $promotion->setDeletedAt(new \DateTime());
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($promotion);
+            $entityManager->flush();
+            return new Response('ok', $code);
+        }
+    }
 }

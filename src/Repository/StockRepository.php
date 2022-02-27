@@ -47,4 +47,18 @@ class StockRepository extends ServiceEntityRepository
         ;
     }
     */
+    public function removeAllStockProduct($value)
+    {
+        $entityManager = $this->getEntityManager();
+
+        $queryBuilder = $entityManager->createQueryBuilder();
+
+        $query = $queryBuilder->update('App\Entity\Stock', 's')
+            ->set('s.deletedAt', ':deletedAt')
+            ->where('s.produit = :editId')
+            ->setParameter('deletedAt', new \DateTime())
+            ->setParameter('editId', $value)
+            ->getQuery();
+        $result = $query->execute();
+    }
 }
