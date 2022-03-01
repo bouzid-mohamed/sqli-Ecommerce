@@ -97,6 +97,34 @@ App\Entity\Stock:
             - NotBlank: ~
             - Length:
                 min: 2
+App\Entity\Commande:
+    properties:
+        status:
+            - NotNull: ~
+        numTel:
+            - GreaterThan: 10000000
+            - LessThanOrEqual: 99999999
+        addresse:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        gouvernerat:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        delegation:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        pays:
+            - NotBlank: ~
+            - Length:
+                min: 2
+        client:
+            - NotNull: ~
+        prix:
+            - GreaterThan: 0
+       
         
   
 

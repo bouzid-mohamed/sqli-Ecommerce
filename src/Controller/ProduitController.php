@@ -17,7 +17,6 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-use function PHPUnit\Framework\isNull;
 
 class ProduitController extends AbstractController
 {

@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\CommandeRepository;
+
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use App\Repository\CommandeRepository;
 
 /**
  * @ORM\Entity(repositoryClass=CommandeRepository::class)
@@ -17,10 +19,19 @@ class Commande
      */
     private $id;
 
+    const STATUS_nouvelle = 'nouvelle';
+    const STATUS_confirmationClien = 'confirmationClient';
+    const STATUS_confirmationPoste = 'confirmationPoste';
+    const STATUS_affectationPoste = 'affectationPoste';
+    const STATUS_finie= 'finie';
+    const STATUS_annulee = 'annulee';
+
+
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, columnDefinition="enum('nouvelle', 'confirmationClient','confirmationPoste','affectationPoste','finie','annulee')")
      */
+   
     private $status;
 
     /**
@@ -54,12 +65,12 @@ class Commande
     private $prix;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
-     * @ORM\Column(type="datetime_immutable", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $updatedAt;
 
@@ -73,6 +84,18 @@ class Commande
      */
     private $client;
 
+    /**
+     * @ORM\OneToMany(targetEntity=LigneCommande::class, mappedBy="commande", cascade={"persist"})
+     */
+    private $Lignescommande;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Livreur::class, inversedBy="commandeLivreur")
+     */
+    private $livreur;
+
+
+
     
 
     public function getId(): ?int
@@ -85,12 +108,17 @@ class Commande
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus( string $status): self
     {
-        $this->status = $status;
-
+        if (!in_array($status, array(self::STATUS_nouvelle, self::STATUS_finie , self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee,self::STATUS_affectationPoste))) {
+            throw new \InvalidArgumentException("Invalid status");
+        }
+        $this->status = $status ;
         return $this;
     }
+    public static function getStatusList() {
+        return array (self::STATUS_nouvelle, self::STATUS_finie , self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee,self::STATUS_affectationPoste);
+      }
 
     public function getNumTel(): ?int
     {
@@ -164,24 +192,24 @@ class Commande
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTime
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(?\DateTime $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 
@@ -211,6 +239,49 @@ class Commande
 
         return $this;
     }
+
+    /**
+     * @return Collection|LigneCommande[]
+     */
+    public function getLignesCommandes(): Collection
+    {
+        return $this->Lignescommande;
+    }
+
+    public function addLigneCommande(LigneCommande $ligneCommande): self
+    {
+        if (!$this->Lignescommande->contains($ligneCommande)) {
+            $this->Lignescommande[] = $ligneCommande;
+            $ligneCommande->setCommande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneCommande (LigneCommande $lignecommande): self
+    {
+        if ($this->Lignescommande->removeElement($lignecommande)) {
+            // set the owning side to null (unless already changed)
+            if ($lignecommande->getCommande() === $this) {
+                $lignecommande->setCommande(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getLivreur(): ?Livreur
+    {
+        return $this->livreur;
+    }
+
+    public function setLivreur(?Livreur $livreur): self
+    {
+        $this->livreur  = $livreur;
+        return $this;
+    }
+
+
 
  
 }

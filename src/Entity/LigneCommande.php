@@ -67,7 +67,7 @@ class LigneCommande
         return $this->stock;
     }
 
-    public function setStock(?Commande $stock): self
+    public function setStock(?Stock $stock): self
     {
         $this->stock = $stock;
 

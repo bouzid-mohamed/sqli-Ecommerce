@@ -43,4 +43,5 @@ security:
         - { path: '/api/entreprise', roles: [ROLE_ENTREPRISE] }
         - { path: '/api/client', roles: [ROLE_CLIENT] }
         - { path: '/api/livreur', roles: [ROLE_LIVREUR] }
+        - { path: '/api/annuleecommande', roles: [ROLE_LIVREUR,ROLE_ENTREPRISE,ROLE_POSTE] }
         

@@ -217,7 +217,7 @@ class Produit
     }
 
      /**
-     * @return Collection|Image[]
+     * @return Collection|Stock[]
      */
     public function getStocks(): Collection
     {

@@ -94,4 +94,22 @@ listeProduit:
 deleteProduit:
     path: /api/entreprise/produit/delete/{id}
     controller: App\Controller\ProduitController::deleteProduit
+addCommande:
+    path: /api/client/commande/add
+    controller: App\Controller\CommandeController::addCommande
+confirmerCommande:
+    path: /api/entreprise/commande/confirmer/{id}
+    controller: App\Controller\CommandeController::confirmerCommande
+affectationPoste:
+    path: /api/entreprise/commande/affecterposte/{id}
+    controller: App\Controller\CommandeController::affecterposte
+confirmationPoste:
+    path: /api/poste/commande/confirmationposte/{id}
+    controller: App\Controller\CommandeController::confirmationPoste
+annuleeCommande:
+    path: /api/annuleecommande/commande/annuleecommande/{id}
+    controller: App\Controller\CommandeController::annuleeCommande
+finirCommande:
+    path: /api/livreur/commande/finirCommande/{id}
+    controller: App\Controller\CommandeController::finirCommande
  
