@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\CategorieRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -28,16 +29,21 @@ class Categorie
     private $deletedAt;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="fils")
+     * @ORM\OneToMany(targetEntity=Categorie::class, mappedBy="catPere", cascade={"persist"})
      */
     private $catFils;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="peres")
+     */
+    private $catPere;
 
     /**
      * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprise")
      */
     private $entreprise;
 
-    
+
 
     public function getId(): ?int
     {
@@ -68,14 +74,27 @@ class Categorie
         return $this;
     }
 
-    public function getCatFils(): ?Categorie
+    /**
+     * @return Collection|Categorie[]|null
+     */
+    public function getCatFils(): ?Collection
     {
         return $this->catFils;
     }
-   
+    public function getCatPere(): ?Categorie
+    {
+        return $this->catPere;
+    }
+
     public function setCatFils(?Categorie $c): self
     {
-        $this->catFils= $c;
+        $this->catFils = $c;
+
+        return $this;
+    }
+    public function setCatPere(?Categorie $c): self
+    {
+        $this->catPere = $c;
 
         return $this;
     }

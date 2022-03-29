@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
+
 /**
  * @ORM\Entity(repositoryClass=ProduitRepository::class)
  */
@@ -63,13 +64,13 @@ class Produit
     /**
      * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="categories")
      */
-    private $categorie ;
+    private $categorie;
 
     /**
      * @ORM\OneToMany(targetEntity=Image::class, mappedBy="produit", cascade={"persist"})
      */
     private $images;
-     /**
+    /**
      * @ORM\OneToMany(targetEntity=Stock::class, mappedBy="produit", cascade={"persist"})
      */
     private $stocks;
@@ -115,9 +116,9 @@ class Produit
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?string
     {
-        return $this->createdAt;
+        return ($this->createdAt->format('d/m/Y'));
     }
 
     public function setCreatedAt(\DateTime $createdAt): self
@@ -154,10 +155,10 @@ class Produit
     {
         return $this->Entreprise;
     }
-   
+
     public function setEntreprise(?Entreprise $e): self
     {
-        $this->Entreprise= $e;
+        $this->Entreprise = $e;
 
         return $this;
     }
@@ -166,10 +167,10 @@ class Produit
     {
         return $this->promotion;
     }
-   
+
     public function setPromotion(?Promotion $p): self
     {
-        $this->promotion= $p;
+        $this->promotion = $p;
 
         return $this;
     }
@@ -178,7 +179,7 @@ class Produit
     {
         return $this->categorie;
     }
-   
+
     public function setCategorie(?Categorie $c): self
     {
         $this->categorie = $c;
@@ -187,9 +188,9 @@ class Produit
     }
 
     /**
-     * @return Collection|Image[]
+     * @return Collection|Image[]|null
      */
-    public function getImages(): Collection
+    public function getImages(): ?Collection
     {
         return $this->images;
     }
@@ -216,10 +217,10 @@ class Produit
         return $this;
     }
 
-     /**
-     * @return Collection|Stock[]
+    /**
+     * @return Collection|Stock[]|null
      */
-    public function getStocks(): Collection
+    public function getStoks(): ?Collection
     {
         return $this->stocks;
     }
@@ -234,6 +235,7 @@ class Produit
         return $this;
     }
 
+
     public function removeStock(Stock $stock): self
     {
         if ($this->stocks->removeElement($stock)) {
@@ -245,5 +247,4 @@ class Produit
 
         return $this;
     }
-
 }

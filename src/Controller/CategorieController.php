@@ -11,6 +11,8 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 class CategorieController extends AbstractController
 {
@@ -55,6 +57,45 @@ class CategorieController extends AbstractController
         return $response;
     }
 
+    public function getAllPagination(PaginatorInterface $paginator, Request $request): Response
+    {
+        $donnees = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'catPere' => null, 'entreprise' => $this->_security->getUser()));
+        $categories = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$categories, 'pagination' =>   ceil($categories->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
     // ajouter une categorie nb : apres l auth en tant que entreprise
     public function addCategorie(Request $request, ValidatorInterface $validator): Response
     {
@@ -64,17 +105,20 @@ class CategorieController extends AbstractController
         // On hydrate l'objet
         $entityManager = $this->getDoctrine()->getManager();
 
+        $verif = true;
         if ($donnees->categoriePere != null) {
-            
-            $cat = $entityManager->getRepository(Categorie::class)->findOneBy(array('id'=>$donnees->categoriePere,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
-            $categorie->setCatFils($cat);
+
+            $cat = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => $donnees->categoriePere, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+            $verif = $this->verifFils($cat);
+            $categorie->setCatPere($cat);
         } else {
-            $categorie->setCatFils(null);
+            $categorie->setCatPere(null);
         }
+
         $categorie->setEntreprise($this->_security->getUser());
         $categorie->setNom($donnees->nom);
         $errors = $validator->validate($categorie);
-        if (count($errors) > 0) {
+        if (count($errors) > 0 || $verif == false) {
             return new Response("failed", 400);
         } else {
             // On sauvegarde en base
@@ -103,7 +147,7 @@ class CategorieController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
 
             if ($donnees->categoriePere != null) {
-                $cat = $entityManager->getRepository(Categorie::class)->findOneBy(array('id'=>$donnees->categoriePere,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+                $cat = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => $donnees->categoriePere, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
                 $categorie->setCatFils($cat);
             } else {
                 $categorie->setCatFils(null);
@@ -134,10 +178,26 @@ class CategorieController extends AbstractController
             return new Response('error', $code);
         } else {
             $categorie->setDeletedAt(new \DateTime());
+            if ($categorie->getCatFils() != null) {
+                $this->getDoctrine()->getRepository(Categorie::class)->removeAllSubCats($categorie->getCatFils()->getId());
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($categorie);
             $entityManager->flush();
+
             return new Response('ok', $code);
         }
+    }
+
+
+    public function verifFils(Categorie $cat)
+    {
+        if ($cat != null) {
+            if ($cat->getCatPere() == null)
+                return true;
+            else if ($cat->getCatPere()->getCatPere() == null)
+                return true;
+            else return false;
+        } else return false;
     }
 }

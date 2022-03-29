@@ -2,114 +2,128 @@
 #    path: /
 #    controller: App\Controller\DefaultController::index
 getSingleUser:
-    path: /api/users/{id}
-    controller: App\Controller\UserController::getSingle
+  path: /api/users/{id}
+  controller: App\Controller\UserController::getSingle
 updateEntreprise:
-    path: /api/entreprise/update/{id}
-    controller: App\Controller\EntrepriseController::editEntreprise
+  path: /api/entreprise/update/{id}
+  controller: App\Controller\EntrepriseController::editEntreprise
 updateClient:
-    path: /api/client/update/{id}
-    controller: App\Controller\ClientController::editClient
+  path: /api/client/update/{id}
+  controller: App\Controller\ClientController::editClient
 updateLivreur:
-    path: /api/livreur/update/{id}
-    controller: App\Controller\LivreurController::editLivreur
+  path: /api/livreur/update/{id}
+  controller: App\Controller\LivreurController::editLivreur
 updatePoste:
-    path: /api/poste/update/{id}
-    controller: App\Controller\PosteController::editPoste
+  path: /api/poste/update/{id}
+  controller: App\Controller\PosteController::editPoste
 removeUser:
-    path: /api/users/delete/{id}
-    controller: App\Controller\UserController::removeUser
+  path: /api/users/delete/{id}
+  controller: App\Controller\UserController::removeUser
 ListEntreprise:
-    path: /entreprises
-    controller: App\Controller\EntrepriseController::index
+  path: /entreprises
+  controller: App\Controller\EntrepriseController::index
 ListClient:
-    path: /clients
-    controller: App\Controller\ClientController::index
+  path: /clients
+  controller: App\Controller\ClientController::index
 ListLivreur:
-    path: api/poste/livreurs
-    controller: App\Controller\LivreurController::index
+  path: api/poste/livreurs
+  controller: App\Controller\LivreurController::index
 ListPoste:
-    path: api/poste
-    controller: App\Controller\PosteController::index
+  path: api/poste
+  controller: App\Controller\PosteController::index
 authentication_token:
-    path: /api/login
-    methods: ['POST']
+  path: /api/login
+  methods: ["POST"]
 addBon:
-    path: /api/entreprise/bon/addBon
-    controller: App\Controller\BonController::addBon
+  path: /api/entreprise/bon/addBon
+  controller: App\Controller\BonController::addBon
 updateBon:
-    path: /api/entreprise/bon/updatebon/{id}
-    controller: App\Controller\BonController::updateBon
+  path: /api/entreprise/bon/updatebon/{id}
+  controller: App\Controller\BonController::updateBon
 deleteBon:
-    path: /api/entreprise/bon/deletebon/{id}
-    controller: App\Controller\BonController::deleteBon
+  path: /api/entreprise/bon/deletebon/{id}
+  controller: App\Controller\BonController::deleteBon
 listBon:
-    path: /api/entreprise/bon
-    controller: App\Controller\BonController::index
+  path: /api/entreprise/bon
+  controller: App\Controller\BonController::index
+listBonPagination:
+  path: /api/entreprise/bon/all
+  controller: App\Controller\BonController::getAllpagination
 addCategorie:
-    path: /api/entreprise/categorie/addCategorie
-    controller: App\Controller\CategorieController::addCategorie
+  path: /api/entreprise/categorie/addCategorie
+  controller: App\Controller\CategorieController::addCategorie
 listeCategories:
-    path: /api/entreprise/categories
-    controller: App\Controller\CategorieController::index
+  path: /api/entreprise/categories
+  controller: App\Controller\CategorieController::index
+listeCategoriesPagination:
+  path: /api/entreprise/categories/all
+  controller: App\Controller\CategorieController::getAllPagination
 editCategorie:
-    path: /api/entreprise/categories/updatecategorie/{id}
-    controller: App\Controller\CategorieController::updateCategorie
+  path: /api/entreprise/categories/updatecategorie/{id}
+  controller: App\Controller\CategorieController::updateCategorie
 deleteCategorie:
-    path: /api/entreprise/categories/deleteCategorie/{id}
-    controller: App\Controller\CategorieController::deleteCategorie
+  path: /api/entreprise/categories/deleteCategorie/{id}
+  controller: App\Controller\CategorieController::deleteCategorie
 addPromotion:
-    path: /api/entreprise/promotion/addpromotion
-    controller: App\Controller\PromotionController::addPromotion
+  path: /api/entreprise/promotion/addpromotion
+  controller: App\Controller\PromotionController::addPromotion
 listePromotion:
-    path: /api/entreprise/promotion
-    controller: App\Controller\PromotionController::index
+  path: /api/entreprise/promotion
+  controller: App\Controller\PromotionController::index
+getAll:
+  path: /api/entreprise/promotion/all
+  controller: App\Controller\PromotionController::getAll
 editPromotion:
-    path: /api/entreprise/promotion/updatepromotion/{id}
-    controller: App\Controller\PromotionController::updatePromotion
+  path: /api/entreprise/promotion/updatepromotion/{id}
+  controller: App\Controller\PromotionController::updatePromotion
 deletePromotion:
-    path: /api/entreprise/promotion/deletepromotion/{id}
-    controller: App\Controller\PromotionController::deletePromotion
+  path: /api/entreprise/promotion/deletepromotion/{id}
+  controller: App\Controller\PromotionController::deletePromotion
 addStock:
-    path: /api/entreprise/stock/addstock
-    controller: App\Controller\StockController::addStock
+  path: /api/entreprise/stock/addstock
+  controller: App\Controller\StockController::addStock
 updateStock:
-    path: /api/entreprise/stock/updatestock/{id}
-    controller: App\Controller\StockController::updateStock
+  path: /api/entreprise/stock/updatestock/{id}
+  controller: App\Controller\StockController::updateStock
 listeStock:
-    path: /api/entreprise/stock
-    controller: App\Controller\StockController::index
+  path: /api/entreprise/stock
+  controller: App\Controller\StockController::index
 deleteStock:
-    path: /api/entreprise/stock/deletestock/{id}
-    controller: App\Controller\StockController::deleteStock
+  path: /api/entreprise/stock/deletestock/{id}
+  controller: App\Controller\StockController::deleteStock
 addProduit:
-    path: /api/entreprise/produit/addproduit
-    controller: App\Controller\ProduitController::addProduit
+  path: /api/entreprise/produit/addproduit
+  controller: App\Controller\ProduitController::addProduit
+showProduit:
+  path: /api/entreprise/produit/show/{id}
+  controller: App\Controller\ProduitController::show
 updateProduit:
-    path: /api/entreprise/produit/updateProduit/{id}
-    controller: App\Controller\ProduitController::updateProduit
+  path: /api/entreprise/produit/updateProduit/{id}
+  controller: App\Controller\ProduitController::updateProduit
 listeProduit:
-    path: /api/entreprise/produit
-    controller: App\Controller\ProduitController::index
+  path: /api/entreprise/produit
+  controller: App\Controller\ProduitController::index
+listeProduitnonpagination:
+  path: /api/entreprise/produit/all
+  controller: App\Controller\ProduitController::getAll
 deleteProduit:
-    path: /api/entreprise/produit/delete/{id}
-    controller: App\Controller\ProduitController::deleteProduit
+  path: /api/entreprise/produit/delete/{id}
+  controller: App\Controller\ProduitController::deleteProduit
 addCommande:
-    path: /api/client/commande/add
-    controller: App\Controller\CommandeController::addCommande
+  path: /api/client/commande/add
+  controller: App\Controller\CommandeController::addCommande
 confirmerCommande:
-    path: /api/entreprise/commande/confirmer/{id}
-    controller: App\Controller\CommandeController::confirmerCommande
+  path: /api/entreprise/commande/confirmer/{id}
+  controller: App\Controller\CommandeController::confirmerCommande
 affectationPoste:
-    path: /api/entreprise/commande/affecterposte/{id}
-    controller: App\Controller\CommandeController::affecterposte
+  path: /api/entreprise/commande/affecterposte/{id}
+  controller: App\Controller\CommandeController::affecterposte
 confirmationPoste:
-    path: /api/poste/commande/confirmationposte/{id}
-    controller: App\Controller\CommandeController::confirmationPoste
+  path: /api/poste/commande/confirmationposte/{id}
+  controller: App\Controller\CommandeController::confirmationPoste
 annuleeCommande:
-    path: /api/annuleecommande/commande/annuleecommande/{id}
-    controller: App\Controller\CommandeController::annuleeCommande
+  path: /api/annuleecommande/commande/annuleecommande/{id}
+  controller: App\Controller\CommandeController::annuleeCommande
 finirCommande:
-    path: /api/livreur/commande/finirCommande/{id}
-    controller: App\Controller\CommandeController::finirCommande
- 
+  path: /api/livreur/commande/finirCommande/{id}
+  controller: App\Controller\CommandeController::finirCommande

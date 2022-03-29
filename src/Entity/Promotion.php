@@ -6,6 +6,7 @@ use App\Repository\PromotionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\Date;
 
 /**
  * @ORM\Entity(repositoryClass=PromotionRepository::class)
@@ -53,13 +54,13 @@ class Promotion
      * @ORM\Column(type="integer")
      */
     private $pourcentage;
-    
+
     /**
      * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
      */
     private $entreprise;
 
-     /**
+    /**
      * @ORM\OneToMany(targetEntity="Produit", mappedBy="promotion", cascade={"persist", "remove"})
      */
     private $produits;
@@ -110,9 +111,9 @@ class Promotion
         return $this;
     }
 
-    public function getDateDebut(): ?\DateTime
+    public function getDateDebut(): ?string
     {
-        return $this->dateDebut;
+        return ($this->dateDebut->format('d/m/Y'));
     }
 
     public function setDateDebut(\DateTime $dateDebut): self
@@ -122,9 +123,9 @@ class Promotion
         return $this;
     }
 
-    public function getDateFin(): ?\DateTime
+    public function getDateFin(): ?string
     {
-        return $this->dateFin;
+        return $this->dateFin->format('d/m/Y');
     }
 
     public function setDateFin(\DateTime $dateFin): self
@@ -161,10 +162,10 @@ class Promotion
     {
         return $this->entreprise;
     }
-   
+
     public function setEntreprise(?Entreprise $e): self
     {
-        $this->entreprise= $e;
+        $this->entreprise = $e;
 
         return $this;
     }
@@ -172,15 +173,15 @@ class Promotion
     public function addProduit(Produit $produit): self
     {
         $this->produits[] = $produit;
- 
+
         return $this;
     }
- 
+
     public function removeCountry(Produit $produit): bool
     {
         return $this->produits->removeElement($produit);
     }
- 
+
     public function getProduits(): Collection
     {
         return $this->produits;

@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 
 class ProduitController extends AbstractController
@@ -32,9 +34,49 @@ class ProduitController extends AbstractController
     }
 
     // liste des stocks pour une entreprise
-    public function index(): Response
+    public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $produits = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
+        $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        $produits = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$produits, 'pagination' =>   ceil($produits->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
+    // liste des prods pour une entreprise
+    public function getAll(): Response
+    {
+        $produits = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -67,38 +109,26 @@ class ProduitController extends AbstractController
     {
         $produit = new Produit();
         // On décode les données envoyées
-        $donnees = json_decode($request->getContent());
+        //  $donnees = json_decode($request->getContent());
         // On hydrate l'objet
-        $produit->setNom($donnees->nom);
-        $produit->setDescription($donnees->description);
-        $produit->setprix($donnees->prix);
+        $produit->setNom($request->get('nom'));
+        $produit->setDescription($request->get('description'));
+        $produit->setprix(intval($request->get('prix')));
         $produit->setCreatedAt(new \DateTime());
         $produit->setUpdatedAt(null);
         $produit->setDeletedAt(null);
         $produit->setEntreprise($this->_security->getUser());
         //recuperer le promotion
         $entityManager = $this->getDoctrine()->getManager();
-        $promotion = $entityManager->getRepository(Promotion::class) ->findOneBy(array('id'=>$donnees->promotion,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
-        if( $promotion  == null ){
-        $produit->setPromotion($promotion);
-    }
-        $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id'=>$donnees->categorie,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+        $promotion = $entityManager->getRepository(Promotion::class)->findOneBy(array('id' => intval($request->get('promotion')), 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+        if ($promotion  != null) {
+            $produit->setPromotion($promotion);
+        }
+        $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => intval($request->get('categorie')), 'catFils' => null, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
         $produit->setCategorie($categorie);
-        //image upload
-        // $images = $request->files->get('images');
-        // foreach ($images as $image){
 
-        //     $fichier=md5(uniqid()) . '.' . $image->guessExtension();
-        //     $image->move(
-        //         $this->getParameter('images_directory'),
-        //         $fichier
-        //     );
-        //     $img=new Image();
-        //     $img->setNom($fichier);
-        //     $produit->addImage($img);
-
-        // }
         //fin image upload
+
         $errors = $validator->validate($produit);
         if (count($errors) > 0) {
             return new Response("failed", 400);
@@ -106,10 +136,41 @@ class ProduitController extends AbstractController
             // On sauvegarde en base
             $entityManager->persist($produit);
             $entityManager->flush();
-            // On retourne la confirmation
-            return new Response($produit->getId(), 201);
+
+            //image upload
+            if ($images = $request->files->get('assets'))
+
+
+                foreach ($images as $image) {
+
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $img = new Image();
+                    $img->setNom($fichier);
+                    $img->setProduit($produit);
+                    $entityManager->persist($img);
+                    $entityManager->flush();
+                }
+
+            //retourner un json
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($produit, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
+
+
 
     public function updateProduit(?Produit $produit, Request $request, ValidatorInterface $validator): Response
     {
@@ -134,9 +195,9 @@ class ProduitController extends AbstractController
             $produit->setEntreprise($this->_security->getUser());
             //recuperer le promotion
             $entityManager = $this->getDoctrine()->getManager();
-            $promotion = $entityManager->getRepository(Promotion::class) ->findOneBy(array('id'=>$donnees->categorie,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+            $promotion = $entityManager->getRepository(Promotion::class)->findOneBy(array('id' => $donnees->categorie, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
             $produit->setPromotion($promotion);
-            $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id'=>$donnees->categorie,'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+            $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => $donnees->categorie, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
             $produit->setCategorie($categorie);
             $errors = $validator->validate($produit);
             if (count($errors) > 0) {
@@ -151,7 +212,7 @@ class ProduitController extends AbstractController
     }
 
     // remove product
-    public function deleteProduit(? Produit $produit,StockRepository $StockRepository)
+    public function deleteProduit(?Produit $produit, StockRepository $StockRepository)
     {
         $code = 200;
         if (!$produit ||  $this->_security->getUser()->getId() != $produit->getEntreprise()->getId()) {
@@ -160,12 +221,44 @@ class ProduitController extends AbstractController
             return new Response('error', $code);
         } else {
             $produit->setDeletedAt(new \DateTime());
-          //  $StockRepository->removeAllStockProduct($produit->getId()) ;
-            $this->getDoctrine()->getRepository(Stock::class)->removeAllStockProduct($produit->getId()) ;
+            //  $StockRepository->removeAllStockProduct($produit->getId()) ;
+            $this->getDoctrine()->getRepository(Stock::class)->removeAllStockProduct($produit->getId());
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($produit);
             $entityManager->flush();
-            return new Response('ok', $code);
+            foreach ($produit->getStoks() as  $s) {
+                $s->setDeletedAt(new \DateTime());
+                $entityManager->persist($s);
+                $entityManager->flush();
+            }
+            return new Response(1, $code);
+        }
+    }
+
+    public function show(?Produit $produit): Response
+    {
+
+        if (!$produit ||  $this->_security->getUser()->getId() != $produit->getEntreprise()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $p = $this->getDoctrine()->getRepository(Produit::class)->findBy(['id' => $produit->getId(), 'deletedAt' => null]);
+            if ($p == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($p, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 }

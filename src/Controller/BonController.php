@@ -12,6 +12,8 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 class BonController extends AbstractController
 {
@@ -27,7 +29,7 @@ class BonController extends AbstractController
 
     public function index(): Response
     {
-        $bons = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId() ));
+        $bons = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()));
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -47,6 +49,40 @@ class BonController extends AbstractController
 
         // On instancie la réponse
         $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+    public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
+    {
+        $bonsData = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()));
+        $bons = $paginator->paginate(
+            $bonsData, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$bons, 'pagination' =>   ceil($bons->getTotalItemCount() / 16)], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
 
         // On ajoute l'entête HTTP
         $response->headers->set('Content-Type', 'application/json');
@@ -76,6 +112,8 @@ class BonController extends AbstractController
             return new Response($bon->getId(), 201);
         }
     }
+
+
     // modifier un bon
     public function updateBon(?Bon $bon, Request $request, ValidatorInterface $validator): Response
     {

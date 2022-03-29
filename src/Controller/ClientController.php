@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Client;
-
+use phpDocumentor\Reflection\Types\Null_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -75,7 +75,7 @@ class ClientController extends AbstractController
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
 
-        $user->setPhoto($donnees->photo);
+        $user->setPhoto('avatar.jpg');
         $user->setCreatedAt(new \DateTime());
         $user->setUpdatedAt(null);
         $user->setIsDeleted(null);
@@ -86,7 +86,7 @@ class ClientController extends AbstractController
         $errors = $validator->validate($user);
 
         if (count($errors) > 0) {
-            return new Response("failed", 400);
+            return new Response($errors[0], 400);
         } else {
             $plainPassword = $user->getPassword();
             $encoded = $encoder->encodePassword($user, $plainPassword);
@@ -97,8 +97,18 @@ class ClientController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // On retourne la confirmation
-            return new Response('ok', 201);
+            //retourner un json
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($user, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 

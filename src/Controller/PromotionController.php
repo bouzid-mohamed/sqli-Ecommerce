@@ -11,6 +11,8 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 class PromotionController extends AbstractController
 {
@@ -28,6 +30,7 @@ class PromotionController extends AbstractController
     public function index(): Response
     {
         $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()));
+
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -55,6 +58,45 @@ class PromotionController extends AbstractController
         return $response;
     }
 
+    public function getAll(PaginatorInterface $paginator, Request $request): Response
+    {
+        $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()));
+        $promotions = $paginator->paginate(
+            $categories, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$promotions, 'pagination' =>   ceil($promotions->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
     // ajouter un promotion nb : apres l auth en tant que entreprise
     public function addPromotion(Request $request, ValidatorInterface $validator): Response
     {
@@ -62,24 +104,41 @@ class PromotionController extends AbstractController
         // On décode les données envoyées
         $donnees = json_decode($request->getContent());
         // On hydrate l'objet
-        $promotion->setNom($donnees->nom);
-        $promotion->setDescription($donnees->description);
-        $promotion->setBanniere($donnees->banniere);
-        $promotion->setDateDebut(new \DateTime($donnees->dateDebut));
-        $promotion->setDateFin(new \DateTime($donnees->dateFin));
+        $promotion->setNom($request->get('nom'));
+        $promotion->setDescription($request->get('description'));
+        //$promotion->setBanniere($request->get('bannière'));
+        $promotion->setDateDebut(new \DateTime($request->get('dateDebut')));
+        $promotion->setDateFin(new \DateTime($request->get('dateFin')));
         $promotion->setDeletedAt(null);
-        $promotion->setPourcentage($donnees->pourcentage);
+        $promotion->setPourcentage($request->get('pourcentage'));
         $promotion->setEntreprise($this->_security->getUser());
         $errors = $validator->validate($promotion);
-        if (count($errors) > 0) {
+        if (count($errors) > 0 && $request->files->get('assets')[0] != null) {
             return new Response("failed", 400);
         } else {
+            $image = $request->files->get('assets');
+            $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+            $image->move(
+                $this->getParameter('images_directory'),
+                $fichier
+            );
+            $promotion->setBanniere($fichier);
+
             // On sauvegarde en base
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($promotion);
             $entityManager->flush();
-            // On retourne la confirmation
-            return new Response($promotion->getId(), 201);
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($promotion, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 

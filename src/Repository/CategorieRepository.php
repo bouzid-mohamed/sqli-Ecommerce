@@ -47,4 +47,17 @@ class CategorieRepository extends ServiceEntityRepository
         ;
     }
     */
+    // remove all sub categ when categ is deleted 
+    public function removeAllSubCats($value)
+    {
+        $entityManager = $this->getEntityManager();
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $query = $queryBuilder->update('App\Entity\Categorie', 'c')
+            ->set('c.deletedAt', ':deletedAt')
+            ->where('c.id = :editId')
+            ->setParameter('deletedAt', new \DateTime())
+            ->setParameter('editId', $value)
+            ->getQuery()->execute();
+      
+    }
 }

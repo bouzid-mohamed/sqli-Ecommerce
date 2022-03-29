@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 class StockController extends AbstractController
 {
@@ -26,28 +28,31 @@ class StockController extends AbstractController
         $this->_security = $security;
     }
     // liste des stocks pour une entreprise
-    public function index(): Response
+    public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $stocks = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
-
+        $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
+        $stocks = $paginator->paginate(
+            $stocksdata, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
-
         // On instancie le "normaliseur" pour convertir la collection en tableau
         $normalizers = [new ObjectNormalizer()];
-
         // On instancie le convertisseur
         $serializer = new Serializer($normalizers, $encoders);
-
         // On convertit en json
-        $jsonContent = $serializer->serialize($stocks, 'json', [
+        $jsonContent = $serializer->serialize([$stocks, 'pagination' =>   ceil($stocks->getTotalItemCount() / 16)], 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             }
         ]);
 
+
         // On instancie la réponse
         $response = new Response($jsonContent);
+
 
         // On ajoute l'entête HTTP
         $response->headers->set('Content-Type', 'application/json');
@@ -69,7 +74,7 @@ class StockController extends AbstractController
         $stock->setEntreprise($this->_security->getUser());
         //recuperer le produit 
         $entityManager = $this->getDoctrine()->getManager();
-        $prod = $entityManager->getRepository(Produit::class)->findOneBy(array('id'=>$donnees->produit,'deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
+        $prod = $entityManager->getRepository(Produit::class)->findOneBy(array('id' => $donnees->produit, 'deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
         $stock->setProduit($prod);
         $errors = $validator->validate($stock);
         if (count($errors) > 0) {
@@ -104,7 +109,7 @@ class StockController extends AbstractController
             $stock->setEntreprise($this->_security->getUser());
             //recuperer le produit 
             $entityManager = $this->getDoctrine()->getManager();
-            $prod = $entityManager->getRepository(Produit::class)->findOneBy(array('id'=>$donnees->produit,'deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
+            $prod = $entityManager->getRepository(Produit::class)->findOneBy(array('id' => $donnees->produit, 'deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
             $stock->setProduit($prod);
 
             $errors = $validator->validate($stock);

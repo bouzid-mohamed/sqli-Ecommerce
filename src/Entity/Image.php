@@ -32,7 +32,7 @@ class Image
      */
     private $produit;
 
-    
+
 
     public function getId(): ?int
     {

@@ -1,148 +1,131 @@
 # config/validator/validation.yaml
 App\Entity\User:
-    constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
-    properties:
-        email:
-            - Email:
-                message: The email "{{ value }}" is not a valid email.
-        password:
-            - NotBlank: ~
-            - Length:
-                min: 5
-        numTel:
-            - GreaterThan: 10000000
-            - LessThanOrEqual: 99999999
+  constraints:
+    - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
+  properties:
+    email:
+      - Email:
+          message: The email "{{ value }}" is not a valid email.
+    password:
+      - NotBlank: ~
+      - Length:
+          min: 5
+    numTel:
+      - GreaterThan: 10000000
+      - LessThanOrEqual: 99999999
 App\Entity\Client:
-    properties: 
-        nom:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        prenom:
-            - NotBlank: ~
-            - Length:
-                min: 2
+  properties:
+    nom:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    prenom:
+      - NotBlank: ~
+      - Length:
+          min: 2
 App\Entity\Livreur:
-    properties: 
-        nom:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        prenom:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        typePermis:
-            - NotBlank: ~
+  properties:
+    nom:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    prenom:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    typePermis:
+      - NotBlank: ~
 App\Entity\Entreprise:
-    properties: 
-        gouvernerat:
-            - NotBlank: ~
-        delegation:
-            - NotBlank: ~
+  properties:
+    gouvernerat:
+      - NotBlank: ~
+    delegation:
+      - NotBlank: ~
 App\Entity\Poste:
-    properties: 
-        gouvernerat:
-            - NotBlank: ~
-        delegation:
-            - NotBlank: ~
+  properties:
+    gouvernerat:
+      - NotBlank: ~
+    delegation:
+      - NotBlank: ~
 App\Entity\Bon:
-    properties: 
-        code:
-            - NotBlank: ~
-            - Length:
-                min: 5
-        reduction:
-            - NotBlank: ~
-            - GreaterThan: 1
+  properties:
+    code:
+      - NotBlank: ~
+      - Length:
+          min: 5
+    reduction:
+      - NotBlank: ~
+      - GreaterThan: 1
 App\Entity\Categorie:
-    properties:
-        nom:
-            - NotBlank: ~
-            - Length:
-                min: 2
+  properties:
+    nom:
+      - NotBlank: ~
+      - Length:
+          min: 2
 App\Entity\Promotion:
-    properties:
-        id:
-        - NotBlank: ~
-        nom:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        description:
-            - NotBlank: ~
-            - Length:
-                min: 5
-        banniere:
-            - NotBlank: ~
-            - Length:
-                min: 3
-        dateDebut:
-            - NotBlank: ~
-        dateFin:
-            - NotBlank: ~
-        pourcentage:
-            - NotBlank: ~
-            - GreaterThan: 1
+  properties:
+    nom:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    description:
+      - NotBlank: ~
+      - Length:
+          min: 5
+    dateDebut:
+      - NotBlank: ~
+    dateFin:
+      - NotBlank: ~
+    pourcentage:
+      - NotBlank: ~
+      - GreaterThan: 1
 App\Entity\Produit:
-    properties:
-        categorie:
-            - NotNull: ~
+  properties:
+    categorie:
+      - NotNull: ~
+    nom:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    prix:
+      - GreaterThan: 0
+    description:
+      - NotBlank: ~
+      - Length:
+          min: 5
 App\Entity\Stock:
-    properties:
-        produit:
-            - NotNull: ~
-        nom:
-            - NotBlank: ~
-            - Length:
-                min: 2
+  properties:
+    couleur:
+      - NotBlank: ~
+    taille:
+      - NotBlank: ~
+    quantite:
+      - GreaterThan: 0
+
 App\Entity\Commande:
-    properties:
-        status:
-            - NotNull: ~
-        numTel:
-            - GreaterThan: 10000000
-            - LessThanOrEqual: 99999999
-        addresse:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        gouvernerat:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        delegation:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        pays:
-            - NotBlank: ~
-            - Length:
-                min: 2
-        client:
-            - NotNull: ~
-        prix:
-            - GreaterThan: 0
-       
-        
-  
-
-            
-        
-        
-        
-        
-
-
-                
-
-
-        
-                
-
-
-       
-        
-          
-            
+  properties:
+    status:
+      - NotNull: ~
+    numTel:
+      - GreaterThan: 10000000
+      - LessThanOrEqual: 99999999
+    addresse:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    gouvernerat:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    delegation:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    pays:
+      - NotBlank: ~
+      - Length:
+          min: 2
+    client:
+      - NotNull: ~
+    prix:
+      - GreaterThan: 0

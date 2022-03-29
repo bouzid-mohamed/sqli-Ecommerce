@@ -1,27 +1,22 @@
 <?php
 
 namespace App\Controller;
-
+use App\Entity\Bon;
 use App\Entity\Commande;
 use App\Entity\LigneCommande;
 use App\Entity\Livreur;
 use App\Entity\Stock;
-
 use Symfony\Component\Security\Core\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
 
 class CommandeController extends AbstractController
 {
-
-
-
 
     /**
      * @param Security
@@ -66,13 +61,25 @@ class CommandeController extends AbstractController
             $reduction = $prix * $promo / 100;
             $p += $ligne->quantite * ($prix - $reduction);
         }
-        $commande->setPrix($p);
+
         $errors = $validator->validate($commande);
         if (count($errors) > 0 && $this->verifCommande($data) == false) {
             return new Response("failed", 400);
         } else {
             // On sauvegarde en base
             $entityManager = $this->getDoctrine()->getManager();
+            $stockCmd = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' =>  $data[0]->id]);
+
+            $bon = $entityManager->getRepository(Bon::class)->findOneBy(array('code' => $donnees->bon, 'entreprise' =>  $stockCmd->getProduit()->getEntreprise()));
+            $reductionBon = 0;
+            if ($bon != null) {
+                $reductionBon = $bon->getReduction();
+            }
+            if ($p >  $reductionBon) {
+                $commande->setPrix($p - $reductionBon);
+            } else {
+                $commande->setPrix(0);
+            }
             $entityManager->persist($commande);
             $entityManager->flush();
             //stoker les ligne de commande 
@@ -274,17 +281,17 @@ class CommandeController extends AbstractController
         // On initialise le code de réponse
         $code = 200;
         // Si le stock n'est pas trouvé et l utilisateur n a pas le privllege de modifier
-        if (!$commande || ( $this->_security->getUser() != $commande->getLivreur())) {
+        if (!$commande || ($this->_security->getUser() != $commande->getLivreur())) {
             // On interdit l accés
             $code = 403;
             return new Response('error', 401);
         } else {
             // On hydrate l'objet
             $commande->setStatus("annulee");
-           
+
 
             $errors = $validator->validate($commande);
-            if (count($errors) > 0 ) {
+            if (count($errors) > 0) {
                 return new Response('Failed', 401);
             } else {
                 // On sauvegarde en base

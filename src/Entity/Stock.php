@@ -37,12 +37,12 @@ class Stock
      */
     private $deletedAt;
 
-     /**
-     * @ORM\ManyToOne(targetEntity=Produit::class, inversedBy="produits")
+    /**
+     * @ORM\ManyToOne(targetEntity=Produit::class, inversedBy="stocks")
      */
     private $produit;
 
-     /**
+    /**
      * @ORM\ManyToOne(targetEntity=Entreprise::class, inversedBy="entreprises")
      */
     private $Entreprise;
@@ -92,10 +92,10 @@ class Stock
     {
         return $this->produit;
     }
-   
+
     public function setProduit(?Produit $p): self
     {
-        $this->produit= $p;
+        $this->produit = $p;
 
         return $this;
     }
@@ -104,10 +104,10 @@ class Stock
     {
         return $this->Entreprise;
     }
-   
+
     public function setEntreprise(?Entreprise $e): self
     {
-        $this->Entreprise= $e;
+        $this->Entreprise = $e;
 
         return $this;
     }
