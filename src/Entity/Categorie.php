@@ -27,11 +27,15 @@ class Categorie
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $deletedAt;
-
     /**
      * @ORM\OneToMany(targetEntity=Categorie::class, mappedBy="catPere", cascade={"persist"})
      */
     private $catFils;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Produit::class, mappedBy="categorie", cascade={"persist"})
+     */
+    private $produits;
 
     /**
      * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="peres")
@@ -79,8 +83,23 @@ class Categorie
      */
     public function getCatFils(): ?Collection
     {
-        return $this->catFils;
+        if ($this->catFils  != null)
+            return  $this->catFils->filter(function ($c) {
+                return $c->getDeletedAt() == null;
+            });
+        return null;
     }
+    /**
+     * @return Collection|Produit[]|null
+     */
+    public function getProduits(): ?Collection
+    {
+        if ($this->produits  != null)
+            return  $this->produits->filter(function ($p) {
+                return $p->getDeletedAt() == null;
+            });
+    }
+
     public function getCatPere(): ?Categorie
     {
         return $this->catPere;

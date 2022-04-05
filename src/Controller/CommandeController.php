@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Controller;
+
 use App\Entity\Bon;
 use App\Entity\Commande;
 use App\Entity\LigneCommande;
 use App\Entity\Livreur;
 use App\Entity\Stock;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Twig\Environment;
 
 class CommandeController extends AbstractController
@@ -111,7 +116,7 @@ class CommandeController extends AbstractController
         else return false;
     }
     // modifier le status d'une commande => confirmer !! role entreprise
-    public function affecterposte(?Commande $commande,  ValidatorInterface $validator): Response
+    public function confirmerCommande(?Commande $commande,  ValidatorInterface $validator): Response
     {
         // On initialise le code de réponse
         $code = 200;
@@ -127,7 +132,7 @@ class CommandeController extends AbstractController
             return new Response('error', 401);
         } else {
             // On hydrate l'objet
-            $commande->setStatus("affectationPoste");
+            $commande->setStatus("confirmationClient");
 
             $errors = $validator->validate($commande);
             if (count($errors) > 0) {
@@ -142,7 +147,7 @@ class CommandeController extends AbstractController
                     ->subject(' Confirmation de la commande ')
                     ->html($this->twig->render(
                         'commande/mailConfirmer.html.twig',
-                        ['text' => 'affectation de la commande à la Poste ']
+                        ['text' => 'Confirmation de la commande ']
 
                     ));
                 $this->mailer->send($message);
@@ -152,7 +157,7 @@ class CommandeController extends AbstractController
     }
 
     // modifier le status d'une commande => affecter à la poste  !! role entreprise
-    public function affectationPoste(?Commande $commande,  ValidatorInterface $validator): Response
+    public function affecterposte(?Commande $commande,  ValidatorInterface $validator): Response
     {
         // On initialise le code de réponse
         $code = 200;
@@ -312,5 +317,38 @@ class CommandeController extends AbstractController
                 return new Response('ok', $code);
             }
         }
+    }
+    public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommande($this->_security->getUser());
+        $commandes = $paginator->paginate(
+            $commandesData, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 16)], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
     }
 }

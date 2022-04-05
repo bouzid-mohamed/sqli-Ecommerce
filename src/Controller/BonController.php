@@ -29,7 +29,7 @@ class BonController extends AbstractController
 
     public function index(): Response
     {
-        $bons = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()));
+        $bons = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -59,7 +59,7 @@ class BonController extends AbstractController
 
     public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
     {
-        $bonsData = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()));
+        $bonsData = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
         $bons = $paginator->paginate(
             $bonsData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -156,6 +156,32 @@ class BonController extends AbstractController
             $entityManager->remove($bon);
             $entityManager->flush();
             return new Response('ok', 200);
+        }
+    }
+
+    public function show(?Bon $bon): Response
+    {
+        if (!$bon ||  $this->_security->getUser()->getId() != $bon->getEntreprise()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $b = $this->getDoctrine()->getRepository(Bon::class)->findBy(['id' => $bon->getId()]);
+            if ($b == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($b, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 }

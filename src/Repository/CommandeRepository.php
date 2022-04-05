@@ -47,4 +47,17 @@ class CommandeRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getAllCommande($value)
+    {
+        return $this->createQueryBuilder('c')
+            ->join('c.Lignescommande', 'l')
+            ->join('l.stock', 's')
+            ->where('l.commande= c.id')
+            ->where('l.stock= s.id')
+            ->where('s.Entreprise=:val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getResult();
+    }
 }

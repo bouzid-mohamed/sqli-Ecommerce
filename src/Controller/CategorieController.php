@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Categorie;
+use App\Entity\Produit;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +30,7 @@ class CategorieController extends AbstractController
 
     public function index(): Response
     {
-        $categories = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()));
+        $categories = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -59,7 +60,7 @@ class CategorieController extends AbstractController
 
     public function getAllPagination(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'catPere' => null, 'entreprise' => $this->_security->getUser()));
+        $donnees = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'catPere' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
         $categories = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -178,9 +179,31 @@ class CategorieController extends AbstractController
             return new Response('error', $code);
         } else {
             $categorie->setDeletedAt(new \DateTime());
-            if ($categorie->getCatFils() != null) {
-                $this->getDoctrine()->getRepository(Categorie::class)->removeAllSubCats($categorie->getCatFils()->getId());
+            $prods = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser(), 'categorie' => $categorie));
+            if ($prods != null) {
+                foreach ($prods as $pr) {
+                    $pr->setDeletedAt(new \DateTime());
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($pr);
+                    $entityManager->flush();
+                }
             }
+
+            if ($categorie->getCatFils() != null) {
+                $this->getDoctrine()->getRepository(Categorie::class)->removeAllSubCats($categorie->getCatFils());
+                foreach ($categorie->getCatFils() as $c) {
+                    $produits = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser(), 'categorie' => $c));
+                    if ($produits != null) {
+                        foreach ($produits as $p) {
+                            $p->setDeletedAt(new \DateTime());
+                            $entityManager = $this->getDoctrine()->getManager();
+                            $entityManager->persist($p);
+                            $entityManager->flush();
+                        }
+                    }
+                }
+            }
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($categorie);
             $entityManager->flush();

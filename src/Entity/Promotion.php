@@ -113,7 +113,7 @@ class Promotion
 
     public function getDateDebut(): ?string
     {
-        return ($this->dateDebut->format('d/m/Y'));
+        return ($this->dateDebut->format('m/d/Y'));
     }
 
     public function setDateDebut(\DateTime $dateDebut): self
@@ -125,7 +125,7 @@ class Promotion
 
     public function getDateFin(): ?string
     {
-        return $this->dateFin->format('d/m/Y');
+        return $this->dateFin->format('m/d/Y');
     }
 
     public function setDateFin(\DateTime $dateFin): self
@@ -180,10 +180,5 @@ class Promotion
     public function removeCountry(Produit $produit): bool
     {
         return $this->produits->removeElement($produit);
-    }
-
-    public function getProduits(): Collection
-    {
-        return $this->produits;
     }
 }

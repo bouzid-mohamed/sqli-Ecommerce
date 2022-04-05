@@ -58,6 +58,5 @@ class CategorieRepository extends ServiceEntityRepository
             ->setParameter('deletedAt', new \DateTime())
             ->setParameter('editId', $value)
             ->getQuery()->execute();
-      
     }
 }

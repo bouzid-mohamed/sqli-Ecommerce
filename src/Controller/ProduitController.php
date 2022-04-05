@@ -124,7 +124,7 @@ class ProduitController extends AbstractController
         if ($promotion  != null) {
             $produit->setPromotion($promotion);
         }
-        $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => intval($request->get('categorie')), 'catFils' => null, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+        $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => intval($request->get('categorie')), 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
         $produit->setCategorie($categorie);
 
         //fin image upload
@@ -174,7 +174,6 @@ class ProduitController extends AbstractController
 
     public function updateProduit(?Produit $produit, Request $request, ValidatorInterface $validator): Response
     {
-        $donnees = json_decode($request->getContent());
 
         // On initialise le code de réponse
         $code = 200;
@@ -186,27 +185,58 @@ class ProduitController extends AbstractController
             return new Response('error', $code);
         } else {
             // On hydrate l'objet
-            $produit->setNom($donnees->nom);
-            $produit->setDescription($donnees->description);
-            $produit->setprix($donnees->prix);
-            // $produit->setCreatedAt();
-            $produit->setUpdatedAt(new \DateTime());
+            $produit->setNom($request->get('nom'));
+            $produit->setDescription($request->get('description'));
+            $produit->setprix(intval($request->get('prix')));
+            $produit->setCreatedAt(new \DateTime());
+            $produit->setUpdatedAt(null);
             $produit->setDeletedAt(null);
             $produit->setEntreprise($this->_security->getUser());
             //recuperer le promotion
             $entityManager = $this->getDoctrine()->getManager();
-            $promotion = $entityManager->getRepository(Promotion::class)->findOneBy(array('id' => $donnees->categorie, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
-            $produit->setPromotion($promotion);
-            $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => $donnees->categorie, 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+            $promotion = $entityManager->getRepository(Promotion::class)->findOneBy(array('id' => intval($request->get('promotion')), 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
+            if ($promotion  != null) {
+                $produit->setPromotion($promotion);
+            }
+            $categorie = $entityManager->getRepository(Categorie::class)->findOneBy(array('id' => intval($request->get('categorie')), 'deletedAt' => null, 'entreprise' => $this->_security->getUser()->getId()));
             $produit->setCategorie($categorie);
             $errors = $validator->validate($produit);
             if (count($errors) > 0) {
-                return new Response('Failed', 401);
+                return new Response("failed", 400);
             } else {
                 // On sauvegarde en base
                 $entityManager->persist($produit);
                 $entityManager->flush();
-                return new Response('ok', $code);
+
+                //image upload
+                if ($images = $request->files->get('assets'))
+
+
+                    foreach ($images as $image) {
+
+                        $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                        $image->move(
+                            $this->getParameter('images_directory'),
+                            $fichier
+                        );
+                        $img = new Image();
+                        $img->setNom($fichier);
+                        $img->setProduit($produit);
+                        $entityManager->persist($img);
+                        $entityManager->flush();
+                    }
+                //retourner un json
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($produit, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             }
         }
     }
@@ -259,6 +289,24 @@ class ProduitController extends AbstractController
             $response = new Response($jsonContent);
             $response->headers->set('Content-Type', 'application/json');
             return $response;
+        }
+    }
+
+    // remove image
+    public function deleteImage(?Image $image)
+    {
+        $code = 200;
+        if (!$image ||  $this->_security->getUser()->getId() != $image->getProduit()->getEntreprise()->getId() || $image->getProduit()->getImages()[1] == null) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $nom = $image->getNom();
+            unlink($this->getParameter('images_directory') . '/' . $nom);
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($image);
+            $em->flush();
+            return new Response(1, $code);
         }
     }
 }

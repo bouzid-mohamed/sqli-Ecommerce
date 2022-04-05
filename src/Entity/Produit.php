@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ProduitRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -62,7 +63,7 @@ class Produit
     private $promotion;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="categories")
+     * @ORM\ManyToOne(targetEntity=Categorie::class, inversedBy="produits")
      */
     private $categorie;
 
@@ -165,7 +166,13 @@ class Produit
 
     public function getPromotion(): ?Promotion
     {
-        return $this->promotion;
+        if ($this->promotion != null) {
+            if ($this->promotion->getDeletedAt() == null && $this->promotion->getDateFin() < new DateTime()) {
+
+                return $this->promotion;
+            }
+        }
+        return null;
     }
 
     public function setPromotion(?Promotion $p): self
@@ -222,7 +229,12 @@ class Produit
      */
     public function getStoks(): ?Collection
     {
-        return $this->stocks;
+        if ($this->stocks != null)
+            return $this->stocks->filter(function ($s) {
+                return $s->getDeletedAt() == null;
+            });
+
+        return null;
     }
 
     public function addStock(Stock $stock): self

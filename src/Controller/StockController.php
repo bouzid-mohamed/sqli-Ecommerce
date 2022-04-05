@@ -30,7 +30,7 @@ class StockController extends AbstractController
     // liste des stocks pour une entreprise
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()));
+        $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
         $stocks = $paginator->paginate(
             $stocksdata, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -138,6 +138,34 @@ class StockController extends AbstractController
             $entityManager->persist($stock);
             $entityManager->flush();
             return new Response('ok', $code);
+        }
+    }
+
+    //show stock
+    public function show(?Stock $stock): Response
+    {
+
+        if (!$stock ||  $this->_security->getUser()->getId() != $stock->getEntreprise()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error access', $code);
+        } else {
+            $s = $this->getDoctrine()->getRepository(Stock::class)->findBy(['id' => $stock->getId(), 'deletedAt' => null]);
+            if ($s == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($s, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 }

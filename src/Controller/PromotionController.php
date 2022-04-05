@@ -60,7 +60,7 @@ class PromotionController extends AbstractController
 
     public function getAll(PaginatorInterface $paginator, Request $request): Response
     {
-        $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()));
+        $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
         $promotions = $paginator->paginate(
             $categories, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -145,8 +145,6 @@ class PromotionController extends AbstractController
     // modifier une promotion
     public function updatePromotion(?Promotion $promotion, Request $request, ValidatorInterface $validator): Response
     {
-        $donnees = json_decode($request->getContent());
-
         // On initialise le code de réponse
         $code = 200;
 
@@ -157,23 +155,46 @@ class PromotionController extends AbstractController
             return new Response('error', $code);
         } else {
             // On hydrate l'objet
-            $promotion->setNom($donnees->nom);
-            $promotion->setDescription($donnees->description);
-            $promotion->setBanniere($donnees->banniere);
-            $promotion->setDateDebut(new \DateTime($donnees->dateDebut));
-            $promotion->setDateFin(new \DateTime($donnees->dateFin));
+            // On hydrate l'objet
+            $promotion->setNom($request->get('nom'));
+            $promotion->setDescription($request->get('description'));
+            //$promotion->setBanniere($request->get('bannière'));
+            $promotion->setDateDebut(new \DateTime($request->get('dateDebut')));
+            $promotion->setDateFin(new \DateTime($request->get('dateFin')));
             $promotion->setDeletedAt(null);
-            $promotion->setPourcentage($donnees->pourcentage);
+            $promotion->setPourcentage($request->get('pourcentage'));
             $promotion->setEntreprise($this->_security->getUser());
             $errors = $validator->validate($promotion);
             if (count($errors) > 0) {
-                return new Response('Failed', 401);
+                return new Response("failed", 400);
             } else {
+
+                if ($request->files->get('assets')[0] != null) {
+                    $image = $request->files->get('assets')[0];
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $promotion->setBanniere($fichier);
+                } else {
+                    $promotion->setBanniere($promotion->getBanniere());
+                }
                 // On sauvegarde en base
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($promotion);
                 $entityManager->flush();
-                return new Response('ok', $code);
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($promotion, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             }
         }
     }
@@ -191,6 +212,34 @@ class PromotionController extends AbstractController
             $entityManager->persist($promotion);
             $entityManager->flush();
             return new Response('ok', $code);
+        }
+    }
+
+    //show stock
+    public function show(?Promotion $promotion): Response
+    {
+
+        if (!$promotion ||  $this->_security->getUser()->getId() != $promotion->getEntreprise()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error access', $code);
+        } else {
+            $p = $this->getDoctrine()->getRepository(Promotion::class)->findBy(['id' => $promotion->getId(), 'deletedAt' => null]);
+            if ($p == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($p, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 }

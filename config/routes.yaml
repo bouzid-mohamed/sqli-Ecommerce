@@ -46,8 +46,11 @@ deleteBon:
 listBon:
   path: /api/entreprise/bon
   controller: App\Controller\BonController::index
+showBon:
+  path: /api/entreprise/bon/{id}
+  controller: App\Controller\BonController::show
 listBonPagination:
-  path: /api/entreprise/bon/all
+  path: /api/entreprise/bon/list/all
   controller: App\Controller\BonController::getAllpagination
 addCategorie:
   path: /api/entreprise/categorie/addCategorie
@@ -67,6 +70,9 @@ deleteCategorie:
 addPromotion:
   path: /api/entreprise/promotion/addpromotion
   controller: App\Controller\PromotionController::addPromotion
+showPromotion:
+  path: /api/entreprise/promotion/show/{id}
+  controller: App\Controller\PromotionController::show
 listePromotion:
   path: /api/entreprise/promotion
   controller: App\Controller\PromotionController::index
@@ -85,6 +91,9 @@ addStock:
 updateStock:
   path: /api/entreprise/stock/updatestock/{id}
   controller: App\Controller\StockController::updateStock
+showstock:
+  path: /api/entreprise/stock/show/{id}
+  controller: App\Controller\StockController::show
 listeStock:
   path: /api/entreprise/stock
   controller: App\Controller\StockController::index
@@ -109,6 +118,9 @@ listeProduitnonpagination:
 deleteProduit:
   path: /api/entreprise/produit/delete/{id}
   controller: App\Controller\ProduitController::deleteProduit
+deleteImage:
+  path: /api/entreprise/produit/delete/image/{id}
+  controller: App\Controller\ProduitController::deleteImage
 addCommande:
   path: /api/client/commande/add
   controller: App\Controller\CommandeController::addCommande
@@ -127,3 +139,6 @@ annuleeCommande:
 finirCommande:
   path: /api/livreur/commande/finirCommande/{id}
   controller: App\Controller\CommandeController::finirCommande
+getAllCommandes:
+  path: /api/entreprise/commande/getAll
+  controller: App\Controller\CommandeController::getAllpagination
