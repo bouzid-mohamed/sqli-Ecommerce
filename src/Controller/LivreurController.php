@@ -28,7 +28,7 @@ class LivreurController extends AbstractController
     //get liste livreur
     public function index(): Response
     {
-        $users = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null));
+        $users = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -77,7 +77,7 @@ class LivreurController extends AbstractController
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
 
-        $user->setPhoto($donnees->photo);
+        $user->setPhoto('default.jpg');
         $user->setCreatedAt(new \DateTime());
         $user->setUpdatedAt(null);
         $user->setIsDeleted(null);
@@ -86,6 +86,7 @@ class LivreurController extends AbstractController
         $user->setNom($donnees->nom);
         $user->setPrenom($donnees->prenom);
         $user->setTypePermis($donnees->typePermis);
+        $user->setPoste($this->_security->getUser());
         $errors = $validator->validate($user);
 
         if (count($errors) > 0) {
@@ -99,9 +100,8 @@ class LivreurController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
-
             // On retourne la confirmation
-            return new Response('ok', 201);
+            return new Response($user->getId(), 201);
         }
     }
 

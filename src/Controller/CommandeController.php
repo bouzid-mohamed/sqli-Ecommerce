@@ -198,7 +198,51 @@ class CommandeController extends AbstractController
     }
 
     // modifier le status d'une commande => confirmer par la poste !! authentifier en tant que poste !! et affectation d un livreur pour passer la commmande 
-    public function confirmationPoste(?Commande $commande, Request $request, ValidatorInterface $validator): Response
+    public function confirmationPoste(?Commande $commande, ValidatorInterface $validator): Response
+    {
+        // On initialise le code de réponse
+        $code = 200;
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->getDoctrine()->getManager();
+        //   $donnees = json_decode($request->getContent());
+        // $livreur = new Livreur();
+
+
+        // Si le stock n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        if (!$commande) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', 401);
+        } else {
+            // On hydrate l'objet
+            $commande->setStatus("confirmationPoste");
+            // affecter un livreur pour passer la commande 
+            //  $livreur = $entityManager->getRepository(Livreur::class)->findOneBy(array('id' => $donnees->livreur));
+            //  $commande->setLivreur($livreur);
+
+            $errors = $validator->validate($commande);
+            if (count($errors) > 0) {
+                return new Response('Failed', 401);
+            } else {
+                // On sauvegarde en base
+                $entityManager->persist($commande);
+                $entityManager->flush();
+                $message = (new Email())
+                    ->from('mohamed.bouzid1@esprit.tn')
+                    ->to($commande->getClient()->getEmail())
+                    ->subject(' Commande confirmée par la poste')
+                    ->html($this->twig->render(
+                        'commande/mailConfirmer.html.twig',
+                        ['text' => 'Commande confirmée par la poste']
+
+                    ));
+                $this->mailer->send($message);
+                return new Response('ok', $code);
+            }
+        }
+    }
+
+    public function AffecterLivreur(?Commande $commande, ValidatorInterface $validator, Request $request): Response
     {
         // On initialise le code de réponse
         $code = 200;
@@ -215,13 +259,13 @@ class CommandeController extends AbstractController
             return new Response('error', 401);
         } else {
             // On hydrate l'objet
-            $commande->setStatus("confirmationPoste");
+            $commande->setStatus("affecterLivreur");
             // affecter un livreur pour passer la commande 
             $livreur = $entityManager->getRepository(Livreur::class)->findOneBy(array('id' => $donnees->livreur));
             $commande->setLivreur($livreur);
 
             $errors = $validator->validate($commande);
-            if (count($errors) > 0 && $livreur == null) {
+            if (count($errors) > 0 || $livreur == null) {
                 return new Response('Failed', 401);
             } else {
                 // On sauvegarde en base
@@ -230,10 +274,10 @@ class CommandeController extends AbstractController
                 $message = (new Email())
                     ->from('mohamed.bouzid1@esprit.tn')
                     ->to($commande->getClient()->getEmail())
-                    ->subject(' Commande confirmée par la poste')
+                    ->subject('Commande affecter à un livreur ')
                     ->html($this->twig->render(
                         'commande/mailConfirmer.html.twig',
-                        ['text' => 'Commande confirmée par la poste']
+                        ['text' => 'Votre Commande est affecter à un livreur']
 
                     ));
                 $this->mailer->send($message);
@@ -321,6 +365,40 @@ class CommandeController extends AbstractController
     public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
     {
         $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommande($this->_security->getUser());
+        $commandes = $paginator->paginate(
+            $commandesData, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 16)], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    //accessible via un compte poste
+    public function getAllCommandePoste(PaginatorInterface $paginator, Request $request): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRolePoste();
         $commandes = $paginator->paginate(
             $commandesData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page

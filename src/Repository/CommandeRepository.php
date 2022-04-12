@@ -51,12 +51,27 @@ class CommandeRepository extends ServiceEntityRepository
     public function getAllCommande($value)
     {
         return $this->createQueryBuilder('c')
-            ->join('c.Lignescommande', 'l')
-            ->join('l.stock', 's')
+            ->leftJoin('c.Lignescommande', 'l')
+            ->leftJoin('l.stock', 's')
             ->where('l.commande= c.id')
             ->where('l.stock= s.id')
             ->where('s.Entreprise=:val')
+            ->orderBy('c.id', 'DESC')
             ->setParameter('val', $value)
+            ->getQuery()
+            ->getResult();
+    }
+    public function getAllCommandeRolePoste()
+    {
+        $status = array("confirmationPoste", "affectationPoste", "finie", "affecterLivreur");
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.Lignescommande', 'l')
+            ->leftJoin('l.stock', 's')
+            ->where('l.commande= c.id')
+            ->where('l.stock= s.id')
+            ->where('c.status IN (:status)')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('status', $status)
             ->getQuery()
             ->getResult();
     }

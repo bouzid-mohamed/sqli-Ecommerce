@@ -74,7 +74,7 @@ class PosteController extends AbstractController
         $user->setRoles(["ROLE_POSTE"]);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
-        $user->setPhoto($donnees->photo);
+        $user->setPhoto('default.jpg');
         $user->setCreatedAt(new \DateTime());
         $user->setUpdatedAt(null);
         $user->setIsDeleted(null);
@@ -97,7 +97,7 @@ class PosteController extends AbstractController
             $entityManager->flush();
 
             // On retourne la confirmation
-            return new Response('ok', 201);
+            return new Response($user->getId(), 201);
         }
     }
 

@@ -23,15 +23,16 @@ class Commande
     const STATUS_confirmationClien = 'confirmationClient';
     const STATUS_confirmationPoste = 'confirmationPoste';
     const STATUS_affectationPoste = 'affectationPoste';
-    const STATUS_finie= 'finie';
+    const STATUS_finie = 'finie';
     const STATUS_annulee = 'annulee';
-
+    const STATUS_affecterLivreur = 'affecterLivreur';
+    const STATUS_retour = 'retour';
 
 
     /**
-     * @ORM\Column(type="string", length=255, columnDefinition="enum('nouvelle', 'confirmationClient','confirmationPoste','affectationPoste','finie','annulee')")
+     * @ORM\Column(type="string", length=255, columnDefinition="enum('nouvelle', 'confirmationClient','confirmationPoste','affectationPoste','finie','annulee','affecterLivreur','retour')")
      */
-   
+
     private $status;
 
     /**
@@ -96,7 +97,7 @@ class Commande
 
 
 
-    
+
 
     public function getId(): ?int
     {
@@ -108,17 +109,18 @@ class Commande
         return $this->status;
     }
 
-    public function setStatus( string $status): self
+    public function setStatus(string $status): self
     {
-        if (!in_array($status, array(self::STATUS_nouvelle, self::STATUS_finie , self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee,self::STATUS_affectationPoste))) {
+        if (!in_array($status, array(self::STATUS_nouvelle, self::STATUS_finie, self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee, self::STATUS_affectationPoste, self::STATUS_retour, self::STATUS_affecterLivreur))) {
             throw new \InvalidArgumentException("Invalid status");
         }
-        $this->status = $status ;
+        $this->status = $status;
         return $this;
     }
-    public static function getStatusList() {
-        return array (self::STATUS_nouvelle, self::STATUS_finie , self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee,self::STATUS_affectationPoste);
-      }
+    public static function getStatusList()
+    {
+        return array(self::STATUS_nouvelle, self::STATUS_finie, self::STATUS_confirmationPoste, self::STATUS_confirmationClien, self::STATUS_annulee, self::STATUS_affectationPoste, self::STATUS_retour, self::STATUS_affecterLivreur);
+    }
 
     public function getNumTel(): ?int
     {
@@ -258,7 +260,7 @@ class Commande
         return $this;
     }
 
-    public function removeLigneCommande (LigneCommande $lignecommande): self
+    public function removeLigneCommande(LigneCommande $lignecommande): self
     {
         if ($this->Lignescommande->removeElement($lignecommande)) {
             // set the owning side to null (unless already changed)
@@ -280,8 +282,4 @@ class Commande
         $this->livreur  = $livreur;
         return $this;
     }
-
-
-
- 
 }

@@ -133,6 +133,9 @@ affectationPoste:
 confirmationPoste:
   path: /api/poste/commande/confirmationposte/{id}
   controller: App\Controller\CommandeController::confirmationPoste
+AffecterLivreur:
+  path: /api/poste/commande/affecterLivreur/{id}
+  controller: App\Controller\CommandeController::AffecterLivreur
 annuleeCommande:
   path: /api/annuleecommande/commande/annuleecommande/{id}
   controller: App\Controller\CommandeController::annuleeCommande
@@ -142,3 +145,6 @@ finirCommande:
 getAllCommandes:
   path: /api/entreprise/commande/getAll
   controller: App\Controller\CommandeController::getAllpagination
+getAllCommandesPoste:
+  path: /api/poste/commande/getAllPoste
+  controller: App\Controller\CommandeController::getAllCommandePoste

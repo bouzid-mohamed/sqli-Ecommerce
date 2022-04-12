@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Livreur extends User
 {
-    
+
     /**
      * @ORM\Column(type="string", length=255)
      */
@@ -25,6 +25,11 @@ class Livreur extends User
      * @ORM\Column(type="string", length=255)
      */
     private $typePermis;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Poste::class, inversedBy="livreurs")
+     */
+    private $poste;
 
 
     public function getNom(): ?string
@@ -59,6 +64,17 @@ class Livreur extends User
     public function setTypePermis(string $typePermis): self
     {
         $this->typePermis = $typePermis;
+
+        return $this;
+    }
+    public function getPoste(): ?Poste
+    {
+        return $this->poste;
+    }
+
+    public function setPoste(?Poste $p): self
+    {
+        $this->poste = $p;
 
         return $this;
     }
