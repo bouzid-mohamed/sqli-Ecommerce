@@ -14,7 +14,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class User implements UserInterface
 {
-     /**
+    /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
@@ -40,9 +40,9 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="string")
      */
-    private $photo ;
+    private $photo = 'default.jpg';
 
-     /**
+    /**
      * @ORM\Column(type="integer")
      */
     private $numTel;
@@ -63,19 +63,19 @@ class User implements UserInterface
 
     private $updated_at;
 
-     /**
+    /**
      * @ORM\Column(type="integer")
      */
     private $type;
 
 
-     /**
+    /**
      * @ORM\Column(type="string")
      */
-    private $restToken ;
+    private $restToken;
 
 
-    
+
 
     public function getId(): ?int
     {
@@ -90,7 +90,7 @@ class User implements UserInterface
 
     public function setType(string $type): self
     {
-        $this->type= $type;
+        $this->type = $type;
         return $this;
     }
 
@@ -101,19 +101,19 @@ class User implements UserInterface
 
     public function setPhoto(string $photo): self
     {
-        $this->photo= $photo;
+        $this->photo = $photo;
 
         return $this;
     }
 
     public function getRestToken(): ?string
     {
-        return $this->restToken ;
+        return $this->restToken;
     }
 
     public function setRestToken(string $restToken): self
     {
-        $this->restToken= $restToken;
+        $this->restToken = $restToken;
 
         return $this;
     }
@@ -216,7 +216,7 @@ class User implements UserInterface
 
     public function setUpdatedAt(?\DateTimeInterface  $updated_at): self
     {
-        $this->updated_at=  $updated_at;
+        $this->updated_at =  $updated_at;
         return $this;
     }
 

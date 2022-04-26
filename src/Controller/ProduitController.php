@@ -36,7 +36,30 @@ class ProduitController extends AbstractController
     // liste des stocks pour une entreprise
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+
+        if ($request->get('order')) {
+            if ($request->get('order') == 1) {
+                $or = 'ASC';
+            } else {
+                $or = 'DESC';
+            }
+        }
+
+        if (!$request->get('filter')) {
+            if (!$request->get('order')) {
+                $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+            } else {
+                $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['prix' => $or]);
+            }
+        } else {
+            if (!$request->get('order')) {
+                $pieces = explode(",", $request->query->get('filter'));
+                $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $this->_security->getUser());
+            } else {
+                $pieces = explode(",", $request->query->get('filter'));
+                $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $this->_security->getUser(), $or);
+            }
+        }
         $produits = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -308,5 +331,45 @@ class ProduitController extends AbstractController
             $em->flush();
             return new Response(1, $code);
         }
+    }
+
+    //get all filter 
+    // liste des stocks pour une entreprise
+    public function getAllFilter(PaginatorInterface $paginator, Request $request): Response
+    {
+        $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($request->query->get('filter'), $this->_security->getUser());
+        $produits = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$produits, 'pagination' =>   ceil($produits->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
     }
 }

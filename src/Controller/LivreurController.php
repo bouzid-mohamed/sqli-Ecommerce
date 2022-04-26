@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Commande;
 use App\Entity\Livreur;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +14,8 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
+
 
 class LivreurController extends AbstractController
 {
@@ -26,9 +29,14 @@ class LivreurController extends AbstractController
         $this->_security = $security;
     }
     //get liste livreur
-    public function index(): Response
+    public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $users = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
+        $donnees = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
+        $users = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -40,14 +48,18 @@ class LivreurController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
 
         // On convertit en json
-        $jsonContent = $serializer->serialize($users, 'json', [
+        $jsonContent = $serializer->serialize([$users, 'pagination' =>   ceil($users->getTotalItemCount() / 16)], 'json', [
+
             'circular_reference_handler' => function ($object) {
+
                 return $object->getId();
             }
         ]);
 
+
         // On instancie la réponse
         $response = new Response($jsonContent);
+
 
         // On ajoute l'entête HTTP
         $response->headers->set('Content-Type', 'application/json');
@@ -143,5 +155,45 @@ class LivreurController extends AbstractController
                 return new Response('ok', $code);
             }
         }
+    }
+
+    //get liste des commandes 
+    public function getAllCommandes(PaginatorInterface $paginator, Request $request): Response
+    {
+        $donnees = $this->getDoctrine()->getRepository(Commande::class)->findBy(array('livreur' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        $users = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$users, 'pagination' =>   ceil($users->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
     }
 }

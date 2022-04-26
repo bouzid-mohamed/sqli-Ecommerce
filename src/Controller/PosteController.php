@@ -13,7 +13,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
-
+use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
 class PosteController extends AbstractController
 {
     /**
@@ -26,9 +26,16 @@ class PosteController extends AbstractController
         $this->_security = $security;
     }
     //get liste poste
-    public function index(): Response
+    public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $users = $this->getDoctrine()->getRepository(Poste::class)->findBy(array('isDeleted' => null));
+        $donnees = $this->getDoctrine()->getRepository(Poste::class)->findBy(array('isDeleted' => null));
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $users = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
 
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -40,14 +47,18 @@ class PosteController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
 
         // On convertit en json
-        $jsonContent = $serializer->serialize($users, 'json', [
+        $jsonContent = $serializer->serialize([$users, 'pagination' =>   ceil($users->getTotalItemCount() / 16)], 'json', [
+
             'circular_reference_handler' => function ($object) {
+
                 return $object->getId();
             }
         ]);
 
+
         // On instancie la réponse
         $response = new Response($jsonContent);
+
 
         // On ajoute l'entête HTTP
         $response->headers->set('Content-Type', 'application/json');

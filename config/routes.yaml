@@ -28,6 +28,9 @@ ListClient:
 ListLivreur:
   path: api/poste/livreurs
   controller: App\Controller\LivreurController::index
+ListLivreursansPagination:
+  path: api/poste/Listlivreurs
+  controller: App\Controller\LivreurController::getAll
 ListPoste:
   path: api/poste
   controller: App\Controller\PosteController::index
@@ -112,6 +115,9 @@ updateProduit:
 listeProduit:
   path: /api/entreprise/produit
   controller: App\Controller\ProduitController::index
+getAllFilter:
+  path: /api/entreprise/getAllFilter
+  controller: App\Controller\ProduitController::getAllFilter
 listeProduitnonpagination:
   path: /api/entreprise/produit/all
   controller: App\Controller\ProduitController::getAll
@@ -142,9 +148,15 @@ annuleeCommande:
 finirCommande:
   path: /api/livreur/commande/finirCommande/{id}
   controller: App\Controller\CommandeController::finirCommande
+retourCommande:
+  path: /api/livreur/commande/retourCommande/{id}
+  controller: App\Controller\CommandeController::retourCommande
 getAllCommandes:
   path: /api/entreprise/commande/getAll
   controller: App\Controller\CommandeController::getAllpagination
 getAllCommandesPoste:
   path: /api/poste/commande/getAllPoste
   controller: App\Controller\CommandeController::getAllCommandePoste
+LivreurCommande:
+  path: /api/livreur/commande/getAllLivreur
+  controller: App\Controller\LivreurController::getAllCommandes

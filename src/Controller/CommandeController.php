@@ -336,7 +336,46 @@ class CommandeController extends AbstractController
             return new Response('error', 401);
         } else {
             // On hydrate l'objet
-            $commande->setStatus("annulee");
+            $commande->setStatus("finie");
+
+
+            $errors = $validator->validate($commande);
+            if (count($errors) > 0) {
+                return new Response('Failed', 401);
+            } else {
+                // On sauvegarde en base
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($commande);
+                $entityManager->flush();
+                $message = (new Email())
+                    ->from('mohamed.bouzid1@esprit.tn')
+                    ->to($commande->getClient()->getEmail())
+                    ->subject(' MERCI D AVOIR EFFECTUÉ VOS ACHATS SUR ....... ')
+                    ->html($this->twig->render(
+                        'commande/mailConfirmer.html.twig',
+                        ['text' => 'MERCI D AVOIR EFFECTUÉ VOS ACHATS SUR .......']
+
+                    ));
+                $this->mailer->send($message);
+                return new Response('ok', $code);
+            }
+        }
+    }
+
+    // status to retour une commande 
+    public function retourCommande(?Commande $commande, ValidatorInterface $validator): Response
+    {
+        // On initialise le code de réponse
+        $code = 200;
+        // Si le stock n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        if (!$commande || ($this->_security->getUser() != $commande->getLivreur())) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', 401);
+        } else {
+            // On hydrate l'objet
+            $commande->setStatus("retour");
 
 
             $errors = $validator->validate($commande);

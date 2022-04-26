@@ -47,4 +47,32 @@ class ProduitRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getAllFilter($arr, $entreprise)
+    {
+
+        return $this->createQueryBuilder('p')
+            ->join('p.categorie', 'c')
+            ->where('p.categorie= c')
+            ->where('c.id IN (:status) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('status', $arr)
+            ->setParameter('paramUser', $entreprise)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getAllFilterOrder($arr, $entreprise, $or)
+    {
+
+        return $this->createQueryBuilder('p')
+            ->join('p.categorie', 'c')
+            ->where('p.categorie= c')
+            ->where('c.id IN (:status) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->orderBy('p.prix', $or)
+            ->setParameter('status', $arr)
+            ->setParameter('paramUser', $entreprise)
+            ->getQuery()
+            ->getResult();
+    }
 }

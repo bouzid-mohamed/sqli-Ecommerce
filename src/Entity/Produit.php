@@ -234,7 +234,7 @@ class Produit
                 return $s->getDeletedAt() == null;
             });
 
-        return null;
+        else return null;
     }
 
     public function addStock(Stock $stock): self
