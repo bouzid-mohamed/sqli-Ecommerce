@@ -59,4 +59,15 @@ class CategorieRepository extends ServiceEntityRepository
             ->setParameter('editId', $value)
             ->getQuery()->execute();
     }
+
+    public function getAllSearch($entreprise, $nom)
+    {
+        return $this->createQueryBuilder('c')
+            ->where('(c.nom LIKE :paramNom )AND c.deletedAt IS NULL AND c.entreprise = :paramUser ')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('paramUser', $entreprise)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->getQuery()
+            ->getResult();
+    }
 }

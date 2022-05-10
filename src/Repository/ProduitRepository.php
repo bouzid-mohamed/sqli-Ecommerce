@@ -75,4 +75,17 @@ class ProduitRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getAllSearch($entreprise, $nom)
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.categorie', 'c')
+            ->where('p.categorie= c')
+            ->where('(p.nom LIKE :paramNom OR c.nom LIKE :paramNom )AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->orderBy('p.id', 'DESC')
+            ->setParameter('paramUser', $entreprise)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->getQuery()
+            ->getResult();
+    }
 }

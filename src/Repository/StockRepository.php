@@ -61,4 +61,20 @@ class StockRepository extends ServiceEntityRepository
             ->getQuery();
         $result = $query->execute();
     }
+
+    public function getAllSearch($entreprise, $nom)
+    {
+        return $this->createQueryBuilder('s')
+            ->join('s.produit', 'p')
+            ->join('p.categorie', 'c')
+            ->where('s.produit = p')
+            ->where('p.categorie= c')
+            ->where('(s.taille LIKE :taille OR s.quantite LIKE :taille OR  p.nom LIKE :paramNom OR c.nom LIKE :paramNom )AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->orderBy('s.id', 'DESC')
+            ->setParameter('paramUser', $entreprise)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->setParameter('taille', $nom)
+            ->getQuery()
+            ->getResult();
+    }
 }

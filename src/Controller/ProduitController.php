@@ -37,27 +37,32 @@ class ProduitController extends AbstractController
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
 
-        if ($request->get('order')) {
-            if ($request->get('order') == 1) {
-                $or = 'ASC';
-            } else {
-                $or = 'DESC';
-            }
-        }
-
-        if (!$request->get('filter')) {
-            if (!$request->get('order')) {
-                $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
-            } else {
-                $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['prix' => $or]);
-            }
+        if ($request->get('search')) {
+            $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
         } else {
-            if (!$request->get('order')) {
-                $pieces = explode(",", $request->query->get('filter'));
-                $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $this->_security->getUser());
+
+            if ($request->get('order')) {
+                if ($request->get('order') == 1) {
+                    $or = 'ASC';
+                } else {
+                    $or = 'DESC';
+                }
+            }
+
+            if (!$request->get('filter')) {
+                if (!$request->get('order')) {
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+                } else {
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['prix' => $or]);
+                }
             } else {
-                $pieces = explode(",", $request->query->get('filter'));
-                $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $this->_security->getUser(), $or);
+                if (!$request->get('order')) {
+                    $pieces = explode(",", $request->query->get('filter'));
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $this->_security->getUser());
+                } else {
+                    $pieces = explode(",", $request->query->get('filter'));
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $this->_security->getUser(), $or);
+                }
             }
         }
         $produits = $paginator->paginate(

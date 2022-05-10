@@ -60,7 +60,11 @@ class CategorieController extends AbstractController
 
     public function getAllPagination(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'catPere' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
+        if ($request->get('search')) {
+            $donnees = $this->getDoctrine()->getRepository(Categorie::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $donnees = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'catPere' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
+        }
         $categories = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page

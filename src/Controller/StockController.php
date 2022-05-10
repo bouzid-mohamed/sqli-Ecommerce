@@ -30,7 +30,13 @@ class StockController extends AbstractController
     // liste des stocks pour une entreprise
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        if ($request->get('search')) {
+            $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $stocksdata = $this->getDoctrine()->getRepository(Stock::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        }
+
+
         $stocks = $paginator->paginate(
             $stocksdata, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
