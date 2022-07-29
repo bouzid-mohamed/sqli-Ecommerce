@@ -28,7 +28,12 @@ class PosteController extends AbstractController
     //get liste poste
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Poste::class)->findBy(array('isDeleted' => null));
+
+        if ($request->get('search')) {
+            $donnees =  $this->getDoctrine()->getRepository(Poste::class)->getAllSearch($request->get('search'));
+        } else {
+            $donnees = $this->getDoctrine()->getRepository(Poste::class)->findBy(array('isDeleted' => null));
+        }
 
         // On spécifie qu'on utilise l'encodeur JSON
         $users = $paginator->paginate(
@@ -85,7 +90,7 @@ class PosteController extends AbstractController
         $user->setRoles(["ROLE_POSTE"]);
         $user->setPassword($donnees->password);
         $user->setNumTel($donnees->numTel);
-        $user->setPhoto('default.jpg');
+        $user->setPhoto('posteLogo.png');
         $user->setCreatedAt(new \DateTime());
         $user->setUpdatedAt(null);
         $user->setIsDeleted(null);
@@ -116,36 +121,63 @@ class PosteController extends AbstractController
 
     public function editPoste(?Poste $user, Request $request, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder): Response
     {
-        // On décode les données envoyées
-        $donnees = json_decode($request->getContent());
-
         // On initialise le code de réponse
         $code = 200;
 
-        // Si le user n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
         if (!$user ||  $this->_security->getUser()->getId() != $user->getId()) {
             // On interdit l accés
             $code = 403;
             return new Response('error', $code);
         } else {
-            // On hydrate l'objet
-            $user->setEmail($donnees->email);
-            $user->setNumTel($donnees->numTel);
-            $user->setPhoto($donnees->photo);
+
+            $user->setEmail($request->get('email'));
+            $user->setNumTel($request->get('numTel'));
+            //$user->setPhoto($donnees->photo);
             $user->setUpdatedAt(new \DateTime());
             $user->setIsDeleted(null);
             $user->setRestToken("");
-            $user->setGouvernerat($donnees->gouvernerat);
-            $user->setDelegation($donnees->delegation);
+            $user->setGouvernerat($request->get('gouvernerat'));
+            $user->setDelegation($request->get('delegation'));
+            $match = true;
+            if ($request->get('newPassword') != '') {
+                $plainPassword = $request->get('newPassword');
+                $encoded = $encoder->encodePassword($user, $plainPassword);
+                $currentPasswordGet = $request->get('password');
+                $match = $encoder->isPasswordValid($user,  $currentPasswordGet);
+                $user->setPassword($encoded);
+            }
             $errors = $validator->validate($user);
-            if (count($errors) > 0) {
-                return new Response('Failed', 401);
+            if (count($errors) > 0 || $match == false) {
+                return new Response("failed", 400);
             } else {
+
+                if ($request->files->get('assets')[0] != null) {
+                    $image = $request->files->get('assets')[0];
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $user->setPhoto($fichier);
+                } else {
+                    $user->setPhoto($user->getPhoto());
+                }
                 // On sauvegarde en base
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
-                return new Response('ok', $code);
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($user, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             }
         }
     }

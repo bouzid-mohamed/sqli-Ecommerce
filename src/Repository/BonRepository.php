@@ -47,4 +47,18 @@ class BonRepository extends ServiceEntityRepository
         ;
     }
     */
+
+
+
+    public function getAllSearch($entreprise, $nom)
+    {
+        return $this->createQueryBuilder('b')
+            ->where('(b.code LIKE :paramNom OR b.reduction =  :paramReduction   )AND b.entreprise = :paramUser ')
+            ->orderBy('b.id', 'DESC')
+            ->setParameter('paramUser', $entreprise)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->setParameter('paramReduction',  $nom)
+            ->getQuery()
+            ->getResult();
+    }
 }

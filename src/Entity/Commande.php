@@ -194,9 +194,9 @@ class Commande
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?string
     {
-        return $this->createdAt;
+        return ($this->createdAt->format('d/m/Y'));
     }
 
     public function setCreatedAt(\DateTime $createdAt): self

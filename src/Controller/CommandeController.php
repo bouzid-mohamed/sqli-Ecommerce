@@ -403,7 +403,11 @@ class CommandeController extends AbstractController
     }
     public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
     {
-        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommande($this->_security->getUser());
+        if ($request->get('search')) {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommande($this->_security->getUser());
+        }
         $commandes = $paginator->paginate(
             $commandesData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -437,7 +441,12 @@ class CommandeController extends AbstractController
     //accessible via un compte poste
     public function getAllCommandePoste(PaginatorInterface $paginator, Request $request): Response
     {
-        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRolePoste();
+
+        if ($request->get('search')) {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRolePosteSearch($request->get('search'));
+        } else {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRolePoste();
+        }
         $commandes = $paginator->paginate(
             $commandesData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -461,6 +470,181 @@ class CommandeController extends AbstractController
         // On instancie la réponse
         $response = new Response($jsonContent);
 
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    public function getDashboardStatics(): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getEntrepriseStatics($this->_security->getUser());
+
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($commandesData, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    public function getDashboardPostStatics(): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getPostStatics();
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($commandesData, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    //livreur stat 
+    public function getDashboardStaticsLivreur(): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getLivreurStatics($this->_security->getUser());
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($commandesData, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    //entreprise fnct stat des clients 
+    public function getClientsStatics(): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getClientsStatics($this->_security->getUser());
+        $clientsData = $this->getDoctrine()->getRepository(Commande::class)->getClientsEvo($this->_security->getUser());
+
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize(['commandesData' => $commandesData, 'clientsData' => $clientsData], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    //postefnct stat des livreurs 
+    public function getLivreurStatics(): Response
+    {
+        $commandesData = $this->getDoctrine()->getRepository(Livreur::class)->getAllPoste($this->_security->getUser());
+        $livreurData = $this->getDoctrine()->getRepository(Commande::class)->getLivreurCommandeStatics($this->_security->getUser());
+
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize(['commandesData' => $commandesData, 'livreurData' => $livreurData], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
+    //postefnct stat des clients pour  livreurs 
+    public function getLivreurClientsStatics(): Response
+    {
+        $ClientsEvoData = $this->getDoctrine()->getRepository(Commande::class)->getClientsLivreurEvo($this->_security->getUser());
+        $ClientsData = $this->getDoctrine()->getRepository(Commande::class)->getLivreurClientsStatics($this->_security->getUser());
+
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize(['ClientsEvoData' => $ClientsEvoData, 'ClientsData' => $ClientsData], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
 
         // On ajoute l'entête HTTP
         $response->headers->set('Content-Type', 'application/json');

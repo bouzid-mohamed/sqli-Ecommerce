@@ -26,7 +26,12 @@ class Entreprise extends User
      */
     private $note;
 
-  
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $nom;
+
+
 
     public function getGouvernerat(): ?string
     {
@@ -54,12 +59,23 @@ class Entreprise extends User
 
     public function getNote(): ?int
     {
-        return $this->note; 
+        return $this->note;
     }
 
     public function setNote(int $note): self
     {
         $this->note = $note;
+
+        return $this;
+    }
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): self
+    {
+        $this->nom = $nom;
 
         return $this;
     }

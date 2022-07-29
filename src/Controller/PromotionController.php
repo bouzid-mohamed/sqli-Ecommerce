@@ -60,7 +60,12 @@ class PromotionController extends AbstractController
 
     public function getAll(PaginatorInterface $paginator, Request $request): Response
     {
-        $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
+        if ($request->get('search')) {
+            $categories = $this->getDoctrine()->getRepository(Promotion::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $categories = $this->getDoctrine()->getRepository(Promotion::class)->findBy(array('deletedAt' => null, 'entreprise' => $this->_security->getUser()), ['id' => 'DESC']);
+        }
+
         $promotions = $paginator->paginate(
             $categories, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page

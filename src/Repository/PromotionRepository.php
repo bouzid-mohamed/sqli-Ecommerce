@@ -47,4 +47,17 @@ class PromotionRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getAllSearch($entreprise, $nom)
+    {
+        return $this->createQueryBuilder('p')
+            ->where('(p.nom LIKE :paramNom OR p.description LIKE :paramNom OR  p.pourcentage =  :paramReduction  OR DATE_FORMAT(p.dateDebut , :dformat) = :paramReduction OR DATE_FORMAT(p.dateFin , :dformat) = :paramReduction	)  AND p.entreprise = :paramUser AND p.deletedAt IS NULL ')
+            ->orderBy('p.id', 'DESC')
+            ->setParameter('paramUser', $entreprise)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->setParameter('paramReduction',  $nom)
+            ->setParameter('dformat',  '%m/%d/%Y')
+            ->getQuery()
+            ->getResult();
+    }
 }

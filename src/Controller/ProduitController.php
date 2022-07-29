@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Categorie;
+use App\Entity\Entreprise;
 use App\Entity\Image;
 use App\Entity\Produit;
 use App\Entity\Promotion;
@@ -343,6 +344,74 @@ class ProduitController extends AbstractController
     public function getAllFilter(PaginatorInterface $paginator, Request $request): Response
     {
         $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($request->query->get('filter'), $this->_security->getUser());
+        $produits = $paginator->paginate(
+            $donnees, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$produits, 'pagination' =>   ceil($produits->getTotalItemCount() / 16)], 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
+    // liste des produits pour une entreprise (front)
+    public function produitsEntreprise(?Entreprise $entreprise, PaginatorInterface $paginator, Request $request): Response
+    {
+
+        if ($request->get('search')) {
+            $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+
+            if ($request->get('order')) {
+                if ($request->get('order') == 1) {
+                    $or = 'ASC';
+                } else {
+                    $or = 'DESC';
+                }
+            }
+
+            if (!$request->get('filter')) {
+                if (!$request->get('order')) {
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $entreprise), ['id' => 'DESC']);
+                } else {
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['prix' => $or]);
+                }
+            } else {
+                if (!$request->get('order')) {
+                    $pieces = explode(",", $request->query->get('filter'));
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $this->_security->getUser());
+                } else {
+                    $pieces = explode(",", $request->query->get('filter'));
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $this->_security->getUser(), $or);
+                }
+            }
+        }
         $produits = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page

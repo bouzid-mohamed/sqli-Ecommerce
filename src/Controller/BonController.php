@@ -59,7 +59,12 @@ class BonController extends AbstractController
 
     public function getAllpagination(PaginatorInterface $paginator, Request $request): Response
     {
-        $bonsData = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+
+        if ($request->get('search')) {
+            $bonsData = $this->getDoctrine()->getRepository(Bon::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $bonsData = $this->getDoctrine()->getRepository(Bon::class)->findBy(array('entreprise' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        }
         $bons = $paginator->paginate(
             $bonsData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page

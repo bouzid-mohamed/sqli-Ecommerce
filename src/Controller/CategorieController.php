@@ -189,6 +189,7 @@ class CategorieController extends AbstractController
                     $pr->setDeletedAt(new \DateTime());
                     $entityManager = $this->getDoctrine()->getManager();
                     $entityManager->persist($pr);
+
                     $entityManager->flush();
                 }
             }
@@ -202,6 +203,7 @@ class CategorieController extends AbstractController
                             $p->setDeletedAt(new \DateTime());
                             $entityManager = $this->getDoctrine()->getManager();
                             $entityManager->persist($p);
+
                             $entityManager->flush();
                         }
                     }

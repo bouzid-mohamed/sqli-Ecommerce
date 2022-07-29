@@ -47,4 +47,15 @@ class PosteRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getAllSearch($nom)
+    {
+        return $this->createQueryBuilder('p')
+            ->where('( p.numTel = :nom  OR p.email LIKE :paramNom OR p.gouvernerat LIKE :paramNom OR p.delegation LIKE :paramNom   )AND p.isDeleted IS NULL  ')
+            ->orderBy('p.id', 'DESC')
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->setParameter('nom',  $nom)
+            ->getQuery()
+            ->getResult();
+    }
 }

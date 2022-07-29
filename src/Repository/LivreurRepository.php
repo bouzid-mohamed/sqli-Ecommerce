@@ -47,4 +47,25 @@ class LivreurRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getAllSearch($poste, $nom)
+    {
+        return $this->createQueryBuilder('l')
+            ->where('(l.nom LIKE :paramNom OR l.numTel LIKE :paramNom OR l.email LIKE :paramNom OR l.typePermis LIKE :paramNom   )AND l.poste = :paramUser AND l.isDeleted IS NULL  ')
+            ->orderBy('l.id', 'DESC')
+            ->setParameter('paramUser', $poste)
+            ->setParameter('paramNom', '%' . $nom . '%')
+            ->getQuery()
+            ->getResult();
+    }
+    public function getAllPoste($poste)
+    {
+        return $this->createQueryBuilder('l')
+            ->select('count(distinct((l.id) ))AS nbrLivreur ,MONTH((l.created_at )) AS month ,YEAR((l.created_at )) AS year ')
+            ->where(' l.poste = :paramUser AND l.isDeleted IS NULL  ')
+            ->groupBy('month,year')
+            ->setParameter('paramUser', $poste)
+            ->getQuery()
+            ->getResult();
+    }
 }

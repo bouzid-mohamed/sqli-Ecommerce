@@ -4,6 +4,9 @@
 getSingleUser:
   path: /api/users/{id}
   controller: App\Controller\UserController::getSingle
+getAuthUser:
+  path: /api/getAuth
+  controller: App\Controller\UserController::getAuth
 updateEntreprise:
   path: /api/entreprise/update/{id}
   controller: App\Controller\EntrepriseController::editEntreprise
@@ -27,13 +30,16 @@ ListClient:
   controller: App\Controller\ClientController::index
 ListLivreur:
   path: api/poste/livreurs
-  controller: App\Controller\LivreurController::index
-ListLivreursansPagination:
-  path: api/poste/Listlivreurs
   controller: App\Controller\LivreurController::getAll
+ListLivreuravecPagination:
+  path: api/poste/Listlivreurs
+  controller: App\Controller\LivreurController::index
 ListPoste:
   path: api/poste
   controller: App\Controller\PosteController::index
+removeLivreurFromPost:
+  path: api/poste/livreur/delete/{id}
+  controller: App\Controller\LivreurController::removeLivreurFromPost
 authentication_token:
   path: /api/login
   methods: ["POST"]
@@ -160,3 +166,24 @@ getAllCommandesPoste:
 LivreurCommande:
   path: /api/livreur/commande/getAllLivreur
   controller: App\Controller\LivreurController::getAllCommandes
+EntrepriseStatics:
+  path: /api/entreprise/statics
+  controller: App\Controller\CommandeController::getDashboardStatics
+posteStatics:
+  path: /api/poste/statics
+  controller: App\Controller\CommandeController::getDashboardPostStatics
+livreurStatics:
+  path: /api/livreur/statics
+  controller: App\Controller\CommandeController::getDashboardStaticsLivreur
+EntrepriseStaticsClients:
+  path: /api/entreprise/clientsstatics
+  controller: App\Controller\CommandeController::getClientsStatics
+PosteStaticsLivreur:
+  path: /api/poste/livreursstatics
+  controller: App\Controller\CommandeController::getLivreurStatics
+ClientStaticsLivreur:
+  path: /api/livreur/clientsstatics
+  controller: App\Controller\CommandeController::getLivreurClientsStatics
+listesProduitsEntreprise:
+  path: /produits_entreprise/{id}
+  controller: App\Controller\ProduitController::produitsEntreprise

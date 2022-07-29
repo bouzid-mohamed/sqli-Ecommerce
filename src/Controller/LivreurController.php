@@ -31,7 +31,11 @@ class LivreurController extends AbstractController
     //get liste livreur
     public function index(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
+        if ($request->get('search')) {
+            $donnees  = $this->getDoctrine()->getRepository(Livreur::class)->getAllSearch($this->_security->getUser()->getId(), $request->get('search'));
+        } else {
+            $donnees = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
+        }
         $users = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -67,6 +71,42 @@ class LivreurController extends AbstractController
         // On envoie la réponse
         return $response;
     }
+
+    public function getAll(): Response
+    {
+        $users = $this->getDoctrine()->getRepository(Livreur::class)->findBy(array('isDeleted' => null, 'poste' => $this->_security->getUser()->getId()));
+
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($users, 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
 
     // ajouter compte livreur 
 
@@ -117,50 +157,82 @@ class LivreurController extends AbstractController
         }
     }
 
-    // edit client
+    // edit entreprise 
 
     public function editLivreur(?Livreur $user, Request $request, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder): Response
     {
-        // On décode les données envoyées
-        $donnees = json_decode($request->getContent());
-
         // On initialise le code de réponse
         $code = 200;
 
-        // Si le user n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
         if (!$user ||  $this->_security->getUser()->getId() != $user->getId()) {
             // On interdit l accés
             $code = 403;
             return new Response('error', $code);
         } else {
             // On hydrate l'objet
-            //$user->setEmail($donnees->email);
+            // On hydrate l'objet
+            $user->setNom($request->get('nom'));
+            $user->setPrenom($request->get('prenom'));
+            $user->setNumTel($request->get('numTel'));
+            $user->setEmail($request->get('email'));
+            $user->setNumTel($request->get('numTel'));
+            $user->setTypePermis($request->get('typePermis'));
 
-            $user->setNumTel($donnees->numTel);
-            $user->setPhoto($donnees->photo);
             $user->setUpdatedAt(new \DateTime());
             $user->setIsDeleted(null);
             $user->setRestToken("");
-            $user->setNom($donnees->nom);
-            $user->setPrenom($donnees->prenom);
+
+            $match = true;
+            if ($request->get('newPassword') != '') {
+                $plainPassword = $request->get('newPassword');
+                $encoded = $encoder->encodePassword($user, $plainPassword);
+                $currentPasswordGet = $request->get('password');
+                $match = $encoder->isPasswordValid($user,  $currentPasswordGet);
+                $user->setPassword($encoded);
+            }
             $errors = $validator->validate($user);
-            if (count($errors) > 0) {
-                return new Response('Failed', 401);
+            if (count($errors) > 0 || $match == false) {
+                return new Response("failed", 400);
             } else {
+
+                if ($request->files->get('assets')[0] != null) {
+                    $image = $request->files->get('assets')[0];
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $user->setPhoto($fichier);
+                } else {
+                    $user->setPhoto($user->getPhoto());
+                }
                 // On sauvegarde en base
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
-                $user->setTypePermis($donnees->typePermis);
-                return new Response('ok', $code);
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($user, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             }
         }
     }
-
     //get liste des commandes 
     public function getAllCommandes(PaginatorInterface $paginator, Request $request): Response
     {
-        $donnees = $this->getDoctrine()->getRepository(Commande::class)->findBy(array('livreur' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        if ($request->get('search')) {
+            $donnees = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRoleLivreurSearch($this->_security->getUser()->getId(), $request->get('search'));
+        } else {
+            $donnees = $this->getDoctrine()->getRepository(Commande::class)->findBy(array('livreur' => $this->_security->getUser()->getId()), ['id' => 'DESC']);
+        }
         $users = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
@@ -195,5 +267,21 @@ class LivreurController extends AbstractController
 
         // On envoie la réponse
         return $response;
+    }
+    //remove livreur from poste 
+    public function removeLivreurFromPost(?Livreur $user)
+    {
+        $code = 200;
+        if (!$user ||  $this->_security->getUser()->getId() != $user->getPoste()->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $user->setIsDeleted(new \DateTime());
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
+            $entityManager->flush();
+            return new Response('ok', $code);
+        }
     }
 }
