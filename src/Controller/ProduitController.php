@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Categorie;
 use App\Entity\Entreprise;
 use App\Entity\Image;
+use App\Entity\LigneCommande;
 use App\Entity\Produit;
 use App\Entity\Promotion;
 use App\Entity\Stock;
@@ -18,8 +19,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Knp\Component\Pager\PaginatorInterface; // Nous appelons le bundle KNP Paginator
-
-
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class ProduitController extends AbstractController
 {
@@ -445,5 +445,77 @@ class ProduitController extends AbstractController
 
         // On envoie la réponse
         return $response;
+    }
+
+    public function showProduitEntreprise($entreprise,  $produit): Response
+    {
+        //  $e = new Entreprise();
+        $e = $this->getDoctrine()->getRepository(Entreprise::class)->findBy(['id' => $entreprise]);
+        $p = $this->getDoctrine()->getRepository(Produit::class)->findBy(['id' => $produit, 'deletedAt' => null, 'Entreprise' => $e]);
+
+
+        //      $p = $this->getDoctrine()->getRepository(Produit::class)->findBy(['id' => $produit->getId(), 'deletedAt' => null]);
+        if ($p == null || $e == null) {
+            $code = 404;
+            return new Response('error', $code);
+        }
+        $encoders = [new JsonEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoders);
+        $jsonContent = $serializer->serialize($p, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+        $response = new Response($jsonContent);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
+
+    //produits page home
+    public function showProduitHome(?Entreprise $entreprise): Response
+    {
+        $meilleurPrix = $this->getDoctrine()->getRepository(Produit::class)->findBy(['deletedAt' => null, 'Entreprise' => $entreprise], ['prix' => 'ASC'], 8);
+        $nouveaux = $this->getDoctrine()->getRepository(Produit::class)->findBy(['deletedAt' => null, 'Entreprise' => $entreprise], ['id' => 'DESC'], 8);
+        $avecPromos = $this->getDoctrine()->getRepository(Produit::class)->getAllAvecPromo($entreprise);
+        $vendu = $this->getDoctrine()->getRepository(LigneCommande::class)->getProductsPlusVendus($entreprise);
+        $p = array();
+        $p2 = array();
+        $i = 0;
+        $ip2 = 0;
+
+        foreach ($vendu as $v) {
+
+            $a = $this->getProductStock($v['ids']);
+            if (!in_array($a->getId(), $p2) && $a->getDeletedAt() == null) {
+                $p2[$ip2] =  $a->getId();
+                $ip2++;
+                $p[$i] = $a;
+                $i++;
+            }
+        }
+
+        if (!$entreprise) {
+            $code = 404;
+            return new Response('error', $code);
+        }
+        $encoders = [new JsonEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoders);
+        $jsonContent = $serializer->serialize(['0' => $meilleurPrix,    '1'  => $nouveaux, '2' => $avecPromos, '3' => $p], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+        $response = new Response($jsonContent);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+    public function getProductStock(?int $s)
+    {
+        $s = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' => $s]);
+
+        return ($s->getProduit());
     }
 }

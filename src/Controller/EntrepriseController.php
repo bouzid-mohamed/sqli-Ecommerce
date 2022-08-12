@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Entreprise;
+use App\Entity\Media;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -100,7 +101,34 @@ class EntrepriseController extends AbstractController
             // On sauvegarde en base
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
+            $media1 = new Media();
+            $media2 = new Media();
+            $media3 = new Media();
+
+            //media1 
+            $media1->setNom(1);
+            $media1->setEntreprise($user);
+            $media1->setImage('default1.png');
+
+            $entityManager->persist($media1);
+            //media2 
+            $media2->setNom(2);
+            $media2->setTitre('Titre');
+            $media2->setDescription('Text');
+            $media2->setEntreprise($user);
+            $media2->setImage('default2.png');
+
+            $entityManager->persist($media2);
+
+            //media3
+            $media3->setNom(3);
+            $media3->setTitre('Titre');
+            $media3->setDescription('Text');
+            $media3->setEntreprise($user);
+            $media3->setImage('default3.png');
+            $entityManager->persist($media3);
             $entityManager->flush();
+
             //retourner un json
             $encoders = [new JsonEncoder()];
             $normalizers = [new ObjectNormalizer()];
@@ -180,6 +208,81 @@ class EntrepriseController extends AbstractController
                 $response->headers->set('Content-Type', 'application/json');
                 return $response;
             }
+        }
+    }
+
+    public function editAboutUs(?Entreprise $user, Request $request, ValidatorInterface $validator): Response
+    {
+        // On initialise le code de réponse
+        $code = 200;
+
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        if (!$user ||  $this->_security->getUser()->getId() != $user->getId()) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            // On hydrate l'objet
+            // On hydrate l'objet
+            $user->setTextAbout($request->get('text'));
+
+            $errors = $validator->validate($user);
+            if (count($errors) > 0 || strlen($user->getTextAbout()) < 10) {
+                return new Response("failed", 400);
+            } else {
+                if ($request->files->get('assets')[0] != null) {
+                    $image = $request->files->get('assets')[0];
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $user->setPhotoAbout($fichier);
+                } else {
+                    $user->setPhotoAbout($user->getPhoto());
+                }
+                // On sauvegarde en base
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($user, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
+            }
+        }
+    }
+
+    public function showByID(?Entreprise $entreprise): Response
+    {
+        if (!$entreprise) {
+            // On interdit l accés
+            $code = 404;
+            return new Response('error', $code);
+        } else {
+            $entreprise = $this->getDoctrine()->getRepository(Entreprise::class)->findBy(['id' => $entreprise->getId()]);
+            if ($entreprise == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($entreprise, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         }
     }
 }

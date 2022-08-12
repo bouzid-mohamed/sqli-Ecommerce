@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EntrepriseRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -30,8 +32,25 @@ class Entreprise extends User
      * @ORM\Column(type="string", length=255)
      */
     private $nom;
+    /**
+     * @ORM\Column(type="string")
+     */
+    private $photoAbout = 'default.jpg';
 
+    /**
+     * @ORM\Column(type="string", length=7000)
+     */
+    private $textAbout;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Media::class, mappedBy="entreprise")
+     */
+    private $media;
+
+    public function __construct()
+    {
+        $this->media = new ArrayCollection();
+    }
 
     public function getGouvernerat(): ?string
     {
@@ -76,6 +95,28 @@ class Entreprise extends User
     public function setNom(string $nom): self
     {
         $this->nom = $nom;
+
+        return $this;
+    }
+    public function getTextAbout(): ?string
+    {
+        return $this->textAbout;
+    }
+
+    public function setTextAbout(string $textAbout): self
+    {
+        $this->textAbout = $textAbout;
+        return $this;
+    }
+
+    public function getPhotoAbout(): ?string
+    {
+        return $this->photoAbout;
+    }
+
+    public function setPhotoAbout(string $photo): self
+    {
+        $this->photoAbout = $photo;
 
         return $this;
     }

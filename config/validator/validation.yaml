@@ -101,7 +101,25 @@ App\Entity\Stock:
       - NotBlank: ~
     quantite:
       - GreaterThan: 0
-
+App\Entity\Media:
+  properties:
+    titre:
+      - NotBlank:
+          allowNull: true
+      - Length:
+          min: 2
+          max: 20
+    description:
+      - NotBlank:
+          allowNull: true
+      - Length:
+          min: 2
+          max: 30
+    url:
+      - NotBlank:
+          allowNull: true
+    image:
+      - NotBlank: ~
 App\Entity\Commande:
   properties:
     status:

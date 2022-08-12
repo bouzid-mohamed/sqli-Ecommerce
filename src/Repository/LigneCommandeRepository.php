@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Entreprise;
 use App\Entity\LigneCommande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -47,4 +48,18 @@ class LigneCommandeRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getProductsPlusVendus($entreprise)
+    {
+        return $this->createQueryBuilder('l')
+            ->select('sum(l.quantite) as q,s.id as ids')
+            ->innerJoin('l.stock', 's')
+            ->where('l.stock= s')
+            ->where('s.Entreprise= :val')
+            ->groupBy('l.stock')
+            ->orderBy('q', 'DESC')
+            ->setParameter('val', $entreprise)
+            ->getQuery()
+            ->getResult();
+    }
 }

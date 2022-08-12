@@ -88,4 +88,15 @@ class ProduitRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getAllAvecPromo($entreprise)
+    {
+        return $this->createQueryBuilder('p')
+            ->where('(p.promotion IS NOT NULL  )AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->orderBy('p.id', 'DESC')
+            ->setMaxResults(8)
+            ->setParameter('paramUser', $entreprise)
+            ->getQuery()
+            ->getResult();
+    }
 }

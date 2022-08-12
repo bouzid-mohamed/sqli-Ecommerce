@@ -10,6 +10,9 @@ getAuthUser:
 updateEntreprise:
   path: /api/entreprise/update/{id}
   controller: App\Controller\EntrepriseController::editEntreprise
+updateAboutUs:
+  path: /api/entreprise/updateAboutUs/{id}
+  controller: App\Controller\EntrepriseController::editAboutUs
 updateClient:
   path: /api/client/update/{id}
   controller: App\Controller\ClientController::editClient
@@ -187,3 +190,27 @@ ClientStaticsLivreur:
 listesProduitsEntreprise:
   path: /produits_entreprise/{id}
   controller: App\Controller\ProduitController::produitsEntreprise
+showProduitEntreprise:
+  path: /show_produit/{entreprise}/{produit}
+  controller: App\Controller\ProduitController::showProduitEntreprise
+afficherEntrepriseFront:
+  path: /show_entreprise/{id}
+  controller: App\Controller\EntrepriseController::showByID
+listeMedia:
+  path: /api/entreprise/medias
+  controller: App\Controller\MediaController::index
+getAllMedia:
+  path: /show_medias/{id}
+  controller: App\Controller\MediaController::getMediasEntreprise
+editMedia:
+  path: /api/entreprise/media/edit/{id}
+  controller: App\Controller\MediaController::editMedia
+showByIdMedia:
+  path: /api/entreprise/media/show/{id}
+  controller: App\Controller\MediaController::showByID
+getPromotionsHome:
+  path: /show_promotions_home/{id}
+  controller: App\Controller\PromotionController::getPromotionsHome
+showProduitsHome:
+  path: /show_produits_home/{id}
+  controller: App\Controller\ProduitController::showProduitHome

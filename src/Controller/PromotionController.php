@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Entreprise;
 use Symfony\Component\Security\Core\Security;
 use App\Entity\Promotion;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -230,6 +231,34 @@ class PromotionController extends AbstractController
             return new Response('error access', $code);
         } else {
             $p = $this->getDoctrine()->getRepository(Promotion::class)->findBy(['id' => $promotion->getId(), 'deletedAt' => null]);
+            if ($p == null) {
+                $code = 404;
+                return new Response('error', $code);
+            }
+            $encoders = [new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($p, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+            $response = new Response($jsonContent);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
+        }
+    }
+
+    //get promotions page home 
+    public function getPromotionsHome(?Entreprise $e): Response
+    {
+
+        if (!$e) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $p = $this->getDoctrine()->getRepository(Promotion::class)->findBy(['entreprise' => $e, 'deletedAt' => null], ['id' => 'DESC'], 5);
             if ($p == null) {
                 $code = 404;
                 return new Response('error', $code);
