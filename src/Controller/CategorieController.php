@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Categorie;
+use App\Entity\Entreprise;
 use App\Entity\Produit;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -228,5 +229,42 @@ class CategorieController extends AbstractController
                 return true;
             else return false;
         } else return false;
+    }
+    //get all cat
+    public function getAllFront(?Entreprise $e): Response
+    {
+
+        if (!$e) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $categories = $this->getDoctrine()->getRepository(Categorie::class)->findBy(array('deletedAt' => null, 'entreprise' => $e), ['id' => 'DESC']);
+
+            // On spécifie qu'on utilise l'encodeur JSON
+            $encoders = [new JsonEncoder()];
+
+            // On instancie le "normaliseur" pour convertir la collection en tableau
+            $normalizers = [new ObjectNormalizer()];
+
+            // On instancie le convertisseur
+            $serializer = new Serializer($normalizers, $encoders);
+
+            // On convertit en json
+            $jsonContent = $serializer->serialize($categories, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+
+            // On instancie la réponse
+            $response = new Response($jsonContent);
+
+            // On ajoute l'entête HTTP
+            $response->headers->set('Content-Type', 'application/json');
+
+            // On envoie la réponse
+            return $response;
+        }
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Bon;
+use App\Entity\Client;
 use App\Entity\Commande;
+use App\Entity\Entreprise;
 use App\Entity\LigneCommande;
 use App\Entity\Livreur;
 use App\Entity\Stock;
@@ -51,20 +53,22 @@ class CommandeController extends AbstractController
         $commande->setAddresse($donnees->addresse);
         $commande->setGouvernerat($donnees->gouvernerat);
         $commande->setDelegation($donnees->delegation);
-        $commande->setPays($donnees->pays);
+        $commande->setPays('Tunisie');
         $commande->setCreatedAt(new \DateTime());
         $commande->setUpdatedAt(null);
         $data =  $donnees->lignesCommande;
         $p = 0;
         foreach ($data as $ligne) {
+
             $stock = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' => $ligne->id]);
-            $prix = $stock->getProduit()->getPrix();
+            $prix = intval($stock->getProduit()->getPrix());
             $promo = 0;
             if ($stock->getProduit()->getPromotion() != null) {
                 $promo = $stock->getProduit()->getPromotion()->getPourcentage();
             }
             $reduction = $prix * $promo / 100;
-            $p += $ligne->quantite * ($prix - $reduction);
+            $afterreduction = intval($prix - $reduction);
+            $p += $ligne->quantite * ($afterreduction);
         }
 
         $errors = $validator->validate($commande);
@@ -91,7 +95,8 @@ class CommandeController extends AbstractController
             foreach ($data as $ligne) {
                 $lc = new LigneCommande();
                 $lc->setQuantite($ligne->quantite);
-                $lc->setStock($stock);
+                $stock2 = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' => $ligne->id]);
+                $lc->setStock($stock2);
                 $lc->setCommande($commande);
                 $entityManager->persist($lc);
                 $entityManager->flush();
@@ -651,5 +656,73 @@ class CommandeController extends AbstractController
 
         // On envoie la réponse
         return $response;
+    }
+    public function getAllCommandeClient(?Entreprise $id): Response
+    {
+
+        if (!$id) {
+            $code = 401;
+            return new Response('error', $code);
+        }
+        $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllClientCommande($id->getId(), $this->_security->getUser()->getId());
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+        // On convertit en json
+        $jsonContent = $serializer->serialize($commandesData, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    public function showOneClientCommande(?Entreprise $id, ?Commande $c): Response
+    {
+
+        if (!$id) {
+            $code = 404;
+            return new Response('error entreprise', $code);
+        } else if (!$c) {
+            $code = 404;
+            return new Response('error commande', $code);
+        } else {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->showOneClientCommande($id->getId(), $this->_security->getUser()->getId(), $c->getId());
+            // On spécifie qu'on utilise l'encodeur JSON
+            $encoders = [new JsonEncoder()];
+            // On instancie le "normaliseur" pour convertir la collection en tableau
+            $normalizers = [new ObjectNormalizer()];
+            // On instancie le convertisseur
+            $serializer = new Serializer($normalizers, $encoders);
+            // On convertit en json
+            $jsonContent = $serializer->serialize($commandesData, 'json', [
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+
+
+            // On instancie la réponse
+            $response = new Response($jsonContent);
+
+
+            // On ajoute l'entête HTTP
+            $response->headers->set('Content-Type', 'application/json');
+
+            // On envoie la réponse
+            return $response;
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Bon;
+use App\Entity\Entreprise;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -188,5 +189,29 @@ class BonController extends AbstractController
             $response->headers->set('Content-Type', 'application/json');
             return $response;
         }
+    }
+    public function verifBon($entreprise,  $bon): Response
+    {
+        //  $e = new Entreprise();
+        $e = $this->getDoctrine()->getRepository(Entreprise::class)->findBy(['id' => $entreprise]);
+        $bon = $this->getDoctrine()->getRepository(Bon::class)->findBy(['code' => $bon,  'entreprise' => $e]);
+
+
+        //      $p = $this->getDoctrine()->getRepository(Produit::class)->findBy(['id' => $produit->getId(), 'deletedAt' => null]);
+        if ($bon == null || $e == null) {
+            $code = 404;
+            return new Response('error', $code);
+        }
+        $encoders = [new JsonEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoders);
+        $jsonContent = $serializer->serialize($bon, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+        $response = new Response($jsonContent);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 }

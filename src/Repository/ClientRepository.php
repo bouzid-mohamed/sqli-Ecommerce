@@ -47,4 +47,20 @@ class ClientRepository extends ServiceEntityRepository
         ;
     }
     */
+    public function getAllCommandeClient($entreprise, $cl)
+    {
+        return $this->createQueryBuilder('client')
+            ->leftJoin('client.commande', 'c')
+            ->leftJoin('c.Lignescommande', 'l')
+            ->leftJoin('l.stock', 's')
+            ->where('l.commande= c.id')
+            ->where('c.client = client.id')
+            ->where('l.stock= s.id')
+            ->where('(c.client =: paramClient  )AND s.Entreprise=:val  ')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('val', $entreprise)
+            ->setParameter('paramClient', $cl)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -385,7 +385,7 @@ class ProduitController extends AbstractController
     {
 
         if ($request->get('search')) {
-            $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+            $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllSearch($entreprise, $request->get('search'));
         } else {
 
             if ($request->get('order')) {
@@ -398,17 +398,17 @@ class ProduitController extends AbstractController
 
             if (!$request->get('filter')) {
                 if (!$request->get('order')) {
-                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $entreprise), ['id' => 'DESC']);
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $entreprise->getId()), ['id' => 'DESC']);
                 } else {
-                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $this->_security->getUser()->getId()), ['prix' => $or]);
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->findBy(array('deletedAt' => null, 'Entreprise' => $entreprise->getId()), ['prix' => $or]);
                 }
             } else {
                 if (!$request->get('order')) {
                     $pieces = explode(",", $request->query->get('filter'));
-                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $this->_security->getUser());
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilter($pieces, $entreprise);
                 } else {
                     $pieces = explode(",", $request->query->get('filter'));
-                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $this->_security->getUser(), $or);
+                    $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllFilterOrder($pieces, $entreprise, $or);
                 }
             }
         }

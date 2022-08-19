@@ -52,9 +52,13 @@ class ProduitRepository extends ServiceEntityRepository
     {
 
         return $this->createQueryBuilder('p')
-            ->join('p.categorie', 'c')
+            ->leftJoin('p.categorie', 'c')
+            ->leftJoin('c.catPere', 'pere')
+            ->leftJoin('pere.catPere', 'gp')
             ->where('p.categorie= c')
-            ->where('c.id IN (:status) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->where('c.catPere= pere')
+            ->where('pere.catPere = gp')
+            ->where('( c.id IN (:status) OR pere.id IN (:status) OR gp.id IN (:status) ) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
             ->orderBy('c.id', 'DESC')
             ->setParameter('status', $arr)
             ->setParameter('paramUser', $entreprise)
@@ -66,9 +70,13 @@ class ProduitRepository extends ServiceEntityRepository
     {
 
         return $this->createQueryBuilder('p')
-            ->join('p.categorie', 'c')
+            ->leftJoin('p.categorie', 'c')
+            ->leftJoin('c.catPere', 'pere')
+            ->leftJoin('pere.catPere', 'gp')
             ->where('p.categorie= c')
-            ->where('c.id IN (:status) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
+            ->where('c.catPere= pere')
+            ->where('pere.catPere = gp')
+            ->where('( c.id IN (:status) OR pere.id IN (:status) OR gp.id IN (:status) ) AND p.deletedAt IS NULL AND p.Entreprise = :paramUser ')
             ->orderBy('p.prix', $or)
             ->setParameter('status', $arr)
             ->setParameter('paramUser', $entreprise)

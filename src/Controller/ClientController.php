@@ -112,41 +112,68 @@ class ClientController extends AbstractController
         }
     }
 
-    // edit client
+
+    // edit entreprise 
 
     public function editClient(?Client $user, Request $request, ValidatorInterface $validator, UserPasswordEncoderInterface $encoder): Response
     {
-        // On décode les données envoyées
-        $donnees = json_decode($request->getContent());
-
         // On initialise le code de réponse
         $code = 200;
 
-        // Si le user n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
         if (!$user ||  $this->_security->getUser()->getId() != $user->getId()) {
             // On interdit l accés
             $code = 403;
             return new Response('error', $code);
         } else {
             // On hydrate l'objet
-            //$user->setEmail($donnees->email);
-
-            $user->setNumTel($donnees->numTel);
-            $user->setPhoto($donnees->photo);
+            // On hydrate l'objet
+            $user->setNom($request->get('nom'));
+            $user->setPrenom($request->get('prenom'));
+            $user->setNumTel($request->get('numTel'));
+            $user->setEmail($request->get('email'));
             $user->setUpdatedAt(new \DateTime());
             $user->setIsDeleted(null);
             $user->setRestToken("");
-            $user->setNom($donnees->nom);
-            $user->setPrenom($donnees->prenom);
+            $match = true;
+            if ($request->get('newPassword') != '') {
+                $plainPassword = $request->get('newPassword');
+                $encoded = $encoder->encodePassword($user, $plainPassword);
+                $currentPasswordGet = $request->get('password');
+                $match = $encoder->isPasswordValid($user,  $currentPasswordGet);
+                $user->setPassword($encoded);
+            }
             $errors = $validator->validate($user);
-            if (count($errors) > 0) {
-                return new Response('Failed', 401);
+            if (count($errors) > 0 || $match == false) {
+                return new Response("failed", 400);
             } else {
+
+                if ($request->files->get('assets')[0] != null) {
+                    $image = $request->files->get('assets')[0];
+                    $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $fichier
+                    );
+                    $user->setPhoto($fichier);
+                } else {
+                    $user->setPhoto($user->getPhoto());
+                }
                 // On sauvegarde en base
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
-                return new Response('ok', $code);
+                $encoders = [new JsonEncoder()];
+                $normalizers = [new ObjectNormalizer()];
+                $serializer = new Serializer($normalizers, $encoders);
+                $jsonContent = $serializer->serialize($user, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                        return $object->getId();
+                    }
+                ]);
+                $response = new Response($jsonContent);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             }
         }
     }

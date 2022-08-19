@@ -285,4 +285,39 @@ class CommandeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+
+    public function getAllClientCommande($entreprise, $cl)
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.client', 'client')
+            ->leftJoin('c.Lignescommande', 'l')
+            ->leftJoin('l.stock', 's')
+            ->where('l.commande= c.id')
+            ->where('c.client = client.id')
+            ->where('l.stock= s.id')
+            ->where('(c.client = :paramclient  )AND s.Entreprise= :val  ')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('val', $entreprise)
+            ->setParameter('paramclient', $cl)
+            ->getQuery()
+            ->getResult();
+    }
+    public function showOneClientCommande($entreprise, $cl, $idC)
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.client', 'client')
+            ->leftJoin('c.Lignescommande', 'l')
+            ->leftJoin('l.stock', 's')
+            ->where('l.commande= c.id')
+            ->where('c.client = client.id')
+            ->where('l.stock= s.id')
+            ->where('(c.client = :paramclient AND c.id= :valIdc  )AND s.Entreprise= :val  ')
+            ->orderBy('c.id', 'DESC')
+            ->setParameter('val', $entreprise)
+            ->setParameter('paramclient', $cl)
+            ->setParameter('valIdc', $idC)
+            ->getQuery()
+            ->getResult();
+    }
 }

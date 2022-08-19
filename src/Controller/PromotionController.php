@@ -259,10 +259,7 @@ class PromotionController extends AbstractController
             return new Response('error', $code);
         } else {
             $p = $this->getDoctrine()->getRepository(Promotion::class)->findBy(['entreprise' => $e, 'deletedAt' => null], ['id' => 'DESC'], 5);
-            if ($p == null) {
-                $code = 404;
-                return new Response('error', $code);
-            }
+
             $encoders = [new JsonEncoder()];
             $normalizers = [new ObjectNormalizer()];
             $serializer = new Serializer($normalizers, $encoders);

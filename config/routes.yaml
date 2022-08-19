@@ -214,3 +214,15 @@ getPromotionsHome:
 showProduitsHome:
   path: /show_produits_home/{id}
   controller: App\Controller\ProduitController::showProduitHome
+showCategList:
+  path: /show_categories_list/{id}
+  controller: App\Controller\CategorieController::getAllFront
+verifierClientBon:
+  path: /verif_bon/{entreprise}/{bon}
+  controller: App\Controller\BonController::verifBon
+getAllcommandeClient:
+  path: /api/client/getAllCommandeClient/{id}
+  controller: App\Controller\CommandeController::getAllCommandeClient
+showOneClientCommace:
+  path: /api/client/getCommandeClient/{id}/{c}
+  controller: App\Controller\CommandeController::showOneClientCommande
