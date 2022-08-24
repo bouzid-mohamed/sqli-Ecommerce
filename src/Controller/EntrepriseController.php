@@ -83,7 +83,7 @@ class EntrepriseController extends AbstractController
         $user->setUpdatedAt(null);
         $user->setIsDeleted(null);
         $user->setRestToken("");
-        $user->setType(1);
+        $user->setType(0);
         $user->setGouvernerat($donnees->gouvernerat);
         $user->setDelegation($donnees->delegation);
         $user->setNom($donnees->nom);
@@ -283,6 +283,35 @@ class EntrepriseController extends AbstractController
             $response = new Response($jsonContent);
             $response->headers->set('Content-Type', 'application/json');
             return $response;
+        }
+    }
+
+    // modifier note entreprise
+    public function updateNote(?Entreprise $entreprise, Request $request, ValidatorInterface $validator): Response
+    {
+        $donnees = json_decode($request->getContent());
+
+        // On initialise le code de réponse
+        $code = 200;
+
+        // Si le bon n'est pas trouvé et l utilisateur n a pas le privllege de modifier
+        if (!$entreprise || $donnees->note > 5 || $donnees->note < 0) {
+            // On interdit l accés
+            $code = 404;
+            return new Response('error', $code);
+        } else {
+            $entreprise->setNote(($entreprise->getNote() + $donnees->note));
+            $entreprise->setType($entreprise->getType() + 1);
+            $errors = $validator->validate($entreprise);
+            if (count($errors) > 0) {
+                return new Response('Failed', 401);
+            } else {
+                // On sauvegarde en base
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($entreprise);
+                $entityManager->flush();
+                return new Response('ok', $code);
+            }
         }
     }
 }

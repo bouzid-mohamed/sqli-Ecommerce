@@ -1,0 +1,1 @@
+cd C:/Users/mohamed/Desktop/Nouveau dossier (2)/sqli-back/sqli-Ecommerce & php bin/console app:run-order

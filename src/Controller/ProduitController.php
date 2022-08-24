@@ -383,6 +383,10 @@ class ProduitController extends AbstractController
     // liste des produits pour une entreprise (front)
     public function produitsEntreprise(?Entreprise $entreprise, PaginatorInterface $paginator, Request $request): Response
     {
+        if (!$entreprise) {
+            $code = 404;
+            return new Response('error', $code);
+        }
 
         if ($request->get('search')) {
             $donnees = $this->getDoctrine()->getRepository(Produit::class)->getAllSearch($entreprise, $request->get('search'));
@@ -427,7 +431,7 @@ class ProduitController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
 
         // On convertit en json
-        $jsonContent = $serializer->serialize([$produits, 'pagination' =>   ceil($produits->getTotalItemCount() / 16)], 'json', [
+        $jsonContent = $serializer->serialize([$produits, 'pagination' =>   ceil($produits->getTotalItemCount() / 16), 'entreprise' => $entreprise], 'json', [
 
             'circular_reference_handler' => function ($object) {
 

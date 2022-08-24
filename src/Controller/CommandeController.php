@@ -8,6 +8,7 @@ use App\Entity\Commande;
 use App\Entity\Entreprise;
 use App\Entity\LigneCommande;
 use App\Entity\Livreur;
+use App\Entity\Notification;
 use App\Entity\Stock;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Security\Core\Security;
@@ -92,6 +93,7 @@ class CommandeController extends AbstractController
             $entityManager->persist($commande);
             $entityManager->flush();
             //stoker les ligne de commande 
+
             foreach ($data as $ligne) {
                 $lc = new LigneCommande();
                 $lc->setQuantite($ligne->quantite);
@@ -101,6 +103,14 @@ class CommandeController extends AbstractController
                 $entityManager->persist($lc);
                 $entityManager->flush();
             }
+            $s2 = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' => $data[0]->id]);
+            $notification = new Notification();
+            $notification->setUser($s2->getEntreprise());
+            $notification->setText('le client ' . $this->_security->getUser()->getNom() . ' ' . $this->_security->getUser()->getPrenom() . ' à passer une nouvelle commande');
+            $notification->setCommande($commande);
+            $notification->setVu(0);
+            $entityManager->persist($notification);
+            $entityManager->flush();
             // On retourne la confirmation
             return new Response($commande->getId(), 201);
         }
@@ -232,6 +242,13 @@ class CommandeController extends AbstractController
                 // On sauvegarde en base
                 $entityManager->persist($commande);
                 $entityManager->flush();
+                $notification = new Notification();
+                $notification->setUser($commande->getLignesCommandes()->first()->getStock()->getEntreprise());
+                $notification->setText('votre commande avec l id ' . $commande->getId() . ' à été confirmer par la poste');
+                $notification->setCommande($commande);
+                $notification->setVu(0);
+                $entityManager->persist($notification);
+                $entityManager->flush();
                 $message = (new Email())
                     ->from('mohamed.bouzid1@esprit.tn')
                     ->to($commande->getClient()->getEmail())
@@ -275,6 +292,13 @@ class CommandeController extends AbstractController
             } else {
                 // On sauvegarde en base
                 $entityManager->persist($commande);
+                $entityManager->flush();
+                $notification = new Notification();
+                $notification->setUser($commande->getLivreur());
+                $notification->setText('une nouvelle commande à été affecter ');
+                $notification->setCommande($commande);
+                $notification->setVu(0);
+                $entityManager->persist($notification);
                 $entityManager->flush();
                 $message = (new Email())
                     ->from('mohamed.bouzid1@esprit.tn')
@@ -353,6 +377,13 @@ class CommandeController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($commande);
                 $entityManager->flush();
+                $notification = new Notification();
+                $notification->setUser($commande->getLignesCommandes()->first()->getStock()->getEntreprise());
+                $notification->setText('votre commande numéro = ' . $commande->getId() . ' est délivrer avec succée a votre client ');
+                $notification->setCommande($commande);
+                $notification->setVu(0);
+                $entityManager->persist($notification);
+                $entityManager->flush();
                 $message = (new Email())
                     ->from('mohamed.bouzid1@esprit.tn')
                     ->to($commande->getClient()->getEmail())
@@ -391,6 +422,13 @@ class CommandeController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($commande);
+                $entityManager->flush();
+                $notification = new Notification();
+                $notification->setUser($commande->getLignesCommandes()->first()->getStock()->getEntreprise());
+                $notification->setText('le status de la commande numéro = ' . $commande->getId() . ' est marquer comme retour');
+                $notification->setCommande($commande);
+                $notification->setVu(0);
+                $entityManager->persist($notification);
                 $entityManager->flush();
                 $message = (new Email())
                     ->from('mohamed.bouzid1@esprit.tn')
@@ -724,5 +762,44 @@ class CommandeController extends AbstractController
             // On envoie la réponse
             return $response;
         }
+    }
+
+
+    public function getAllNotificationEntreprise(PaginatorInterface $paginator, Request $request): Response
+    {
+        if ($request->get('search')) {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllSearch($this->_security->getUser(), $request->get('search'));
+        } else {
+            $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommande($this->_security->getUser());
+        }
+        $commandes = $paginator->paginate(
+            $commandesData, // Requête contenant les données à paginer (ici nos articles)
+            $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
+            16 // Nombre de résultats par page
+        );
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+        // On convertit en json
+        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 16)], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
     }
 }

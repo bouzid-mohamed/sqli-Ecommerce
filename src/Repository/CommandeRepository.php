@@ -320,4 +320,14 @@ class CommandeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function ShowexpiredCommande($expiredDate)
+    {
+        $status = array("confirmationPoste", "affectationPoste", "confirmationClient", "affecterLivreur", 'nouvelle');
+
+        return $this->createQueryBuilder('c')
+            ->where('DATE(c.createdAt) <  :val  ')
+            ->setParameter('val', $expiredDate)
+            ->getQuery()
+            ->getResult();
+    }
 }

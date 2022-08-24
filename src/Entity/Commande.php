@@ -96,9 +96,6 @@ class Commande
     private $livreur;
 
 
-
-
-
     public function getId(): ?int
     {
         return $this->id;

@@ -226,3 +226,21 @@ getAllcommandeClient:
 showOneClientCommace:
   path: /api/client/getCommandeClient/{id}/{c}
   controller: App\Controller\CommandeController::showOneClientCommande
+updateNoteEntreprise:
+  path: /update_Note/{entreprise}
+  controller: App\Controller\EntrepriseController::updateNote
+userNotifications:
+  path: /api/notifications
+  controller: App\Controller\NotificationController::index
+updateuserNotifications:
+  path: /api/notifications/update
+  controller: App\Controller\NotificationController::updateNotifcations
+fetNotificationEntreprise:
+  path: /api/entreprise/notifications/show/{id}
+  controller: App\Controller\NotificationController::showEntreprise
+fetNotificationPoste:
+  path: /api/poste/notifications/show/{id}
+  controller: App\Controller\NotificationController::showPoste
+fetNotificationLivreur:
+  path: /api/livreur/notifications/show/{id}
+  controller: App\Controller\NotificationController::showLivreur

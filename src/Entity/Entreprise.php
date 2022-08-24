@@ -24,7 +24,7 @@ class Entreprise extends User
     private $delegation;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="float")
      */
     private $note;
 
@@ -76,12 +76,12 @@ class Entreprise extends User
         return $this;
     }
 
-    public function getNote(): ?int
+    public function getNote(): ?float
     {
         return $this->note;
     }
 
-    public function setNote(int $note): self
+    public function setNote(float $note): self
     {
         $this->note = $note;
 
