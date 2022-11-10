@@ -140,7 +140,11 @@ class ClientController extends AbstractController
                 $plainPassword = $request->get('newPassword');
                 $encoded = $encoder->encodePassword($user, $plainPassword);
                 $currentPasswordGet = $request->get('password');
-                $match = $encoder->isPasswordValid($user,  $currentPasswordGet);
+                if ($user->getPassword() == null) {
+                    $match = true;
+                } else {
+                    $match = $encoder->isPasswordValid($user,  $currentPasswordGet);
+                }
                 $user->setPassword($encoded);
             }
             $errors = $validator->validate($user);

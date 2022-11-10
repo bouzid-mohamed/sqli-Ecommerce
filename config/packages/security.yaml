@@ -1,47 +1,70 @@
 # config/packages/security.yaml
 security:
-    encoders:
-        App\Entity\User:
-            algorithm: auto
+  encoders:
+    App\Entity\User:
+      algorithm: auto
 
-    providers:
-        app_user_provider:
-            entity:
-                class: App\Entity\User
-                property: email
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        login:
-            pattern: ^/api/login
-            stateless: true
-            anonymous: true
-            json_login:
-                check_path: /api/login
-                username_path: email
-                password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        api:
-            pattern: ^/api/
-            stateless: true
-            anonymous: true
-            provider: app_user_provider
-            guard:
-                authenticators:
-                    - lexik_jwt_authentication.jwt_token_authenticator
-        main:
-            anonymous: lazy
-            provider: app_user_provider
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    login:
+      pattern: ^/api/login
+      stateless: true
+      anonymous: true
+      json_login:
+        check_path: /api/login
+        username_path: email
+        password_path: password
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+    social:
+      pattern: ^/connect/facebook/
+      stateless: true
+      anonymous: ~
+      guard:
+        authenticators:
+          - App\Security\MyFacebookAuthenticator
+    google:
+      pattern: ^/connect/google/
+      stateless: true
+      anonymous: ~
+      guard:
+        authenticators:
+          - App\Security\GuardAuthenticator\GoogleAuthenticator
 
-    access_control:
-        - { path: ^/api/docs, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allows accessing the Swagger UI
-        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api/users, roles: IS_AUTHENTICATED_FULLY }
-        - { path: '/api/poste', roles: [ROLE_POSTE] }
-        - { path: '/api/entreprise', roles: [ROLE_ENTREPRISE] }
-        - { path: '/api/client', roles: [ROLE_CLIENT] }
-        - { path: '/api/livreur', roles: [ROLE_LIVREUR] }
-        - { path: '/api/annuleecommande', roles: [ROLE_LIVREUR,ROLE_ENTREPRISE,ROLE_POSTE] }
-        
+    api:
+      pattern: ^/api/
+      stateless: true
+      anonymous: true
+      provider: app_user_provider
+      guard:
+        entry_point: App\Security\MyFacebookAuthenticator
+        authenticators:
+          - App\Security\MyFacebookAuthenticator
+          - App\Security\GuardAuthenticator\GoogleAuthenticator
+          - lexik_jwt_authentication.jwt_token_authenticator
+
+    main:
+      anonymous: lazy
+      provider: app_user_provider
+
+  access_control:
+    - { path: ^/api/docs, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allows accessing the Swagger UI
+    - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/api/users, roles: IS_AUTHENTICATED_FULLY }
+    - { path: "/api/poste", roles: [ROLE_POSTE] }
+    - { path: "/api/entreprise", roles: [ROLE_ENTREPRISE] }
+    - { path: "/api/client", roles: [ROLE_CLIENT] }
+    - { path: "/api/livreur", roles: [ROLE_LIVREUR] }
+    - { path: ^/connect/facebook, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/connect/google, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - {
+        path: "/api/annuleecommande",
+        roles: [ROLE_LIVREUR, ROLE_ENTREPRISE, ROLE_POSTE],
+      }

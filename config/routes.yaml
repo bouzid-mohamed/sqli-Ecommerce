@@ -1,6 +1,6 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+index:
+  path: /
+  controller: App\Controller\DefaultController::index
 getSingleUser:
   path: /api/users/{id}
   controller: App\Controller\UserController::getSingle

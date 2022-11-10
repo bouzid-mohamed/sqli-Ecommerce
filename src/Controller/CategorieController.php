@@ -69,7 +69,7 @@ class CategorieController extends AbstractController
         $categories = $paginator->paginate(
             $donnees, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
-            16 // Nombre de résultats par page
+            10 // Nombre de résultats par page
         );
         // On spécifie qu'on utilise l'encodeur JSON
         $encoders = [new JsonEncoder()];
@@ -81,7 +81,7 @@ class CategorieController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
 
         // On convertit en json
-        $jsonContent = $serializer->serialize([$categories, 'pagination' =>   ceil($categories->getTotalItemCount() / 16)], 'json', [
+        $jsonContent = $serializer->serialize([$categories, 'pagination' =>   ceil($categories->getTotalItemCount() / 10)], 'json', [
 
             'circular_reference_handler' => function ($object) {
 

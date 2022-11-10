@@ -33,7 +33,7 @@ class User implements UserInterface
 
     /**
      * @var string The hashed password
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", nullable=true)
      */
     private $password;
 
@@ -43,7 +43,7 @@ class User implements UserInterface
     private $photo = 'default.jpg';
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $numTel;
 
@@ -73,6 +73,15 @@ class User implements UserInterface
      * @ORM\Column(type="string")
      */
     private $restToken;
+
+    /**
+     * @ORM\Column(type="string",nullable=true)
+     */
+    private $facebook;
+    /**
+     * @ORM\Column(type="string",nullable=true)
+     */
+    private $google;
 
 
 
@@ -117,8 +126,28 @@ class User implements UserInterface
 
         return $this;
     }
+    public function getFacebook(): ?string
+    {
+        return $this->facebook;
+    }
 
+    public function setFacebook(string $facebook): self
+    {
+        $this->facebook = $facebook;
 
+        return $this;
+    }
+    public function getGoogle(): ?string
+    {
+        return $this->google;
+    }
+
+    public function setGoogle(string $google): self
+    {
+        $this->google = $google;
+
+        return $this;
+    }
 
 
     public function getEmail(): ?string
@@ -176,7 +205,7 @@ class User implements UserInterface
     /**
      * @see UserInterface
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }

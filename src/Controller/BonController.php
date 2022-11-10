@@ -69,7 +69,7 @@ class BonController extends AbstractController
         $bons = $paginator->paginate(
             $bonsData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
-            16 // Nombre de résultats par page
+            10 // Nombre de résultats par page
         );
 
         // On spécifie qu'on utilise l'encodeur JSON
@@ -79,7 +79,7 @@ class BonController extends AbstractController
         // On instancie le convertisseur
         $serializer = new Serializer($normalizers, $encoders);
         // On convertit en json
-        $jsonContent = $serializer->serialize([$bons, 'pagination' =>   ceil($bons->getTotalItemCount() / 16)], 'json', [
+        $jsonContent = $serializer->serialize([$bons, 'pagination' =>   ceil($bons->getTotalItemCount() / 10)], 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             }

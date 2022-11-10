@@ -50,7 +50,11 @@ class CommandeController extends AbstractController
         // On hydrate l'objet
         $commande->setClient($this->_security->getUser());
         $commande->setStatus('nouvelle');
-        $commande->setNumTel($this->_security->getUser()->getNumTel());
+        if ($donnees->numTel != null) {
+            $commande->setNumTel($donnees->numTel);
+        } else {
+            $commande->setNumTel($this->_security->getUser()->getNumTel());
+        }
         $commande->setAddresse($donnees->addresse);
         $commande->setGouvernerat($donnees->gouvernerat);
         $commande->setDelegation($donnees->delegation);
@@ -454,7 +458,7 @@ class CommandeController extends AbstractController
         $commandes = $paginator->paginate(
             $commandesData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
-            16 // Nombre de résultats par page
+            10 // Nombre de résultats par page
         );
 
         // On spécifie qu'on utilise l'encodeur JSON
@@ -464,7 +468,7 @@ class CommandeController extends AbstractController
         // On instancie le convertisseur
         $serializer = new Serializer($normalizers, $encoders);
         // On convertit en json
-        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 16)], 'json', [
+        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 10)], 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             }
@@ -484,7 +488,6 @@ class CommandeController extends AbstractController
     //accessible via un compte poste
     public function getAllCommandePoste(PaginatorInterface $paginator, Request $request): Response
     {
-
         if ($request->get('search')) {
             $commandesData = $this->getDoctrine()->getRepository(Commande::class)->getAllCommandeRolePosteSearch($request->get('search'));
         } else {
@@ -493,7 +496,7 @@ class CommandeController extends AbstractController
         $commandes = $paginator->paginate(
             $commandesData, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
-            16 // Nombre de résultats par page
+            10 // Nombre de résultats par page
         );
 
         // On spécifie qu'on utilise l'encodeur JSON
@@ -503,7 +506,7 @@ class CommandeController extends AbstractController
         // On instancie le convertisseur
         $serializer = new Serializer($normalizers, $encoders);
         // On convertit en json
-        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 16)], 'json', [
+        $jsonContent = $serializer->serialize([$commandes, 'pagination' =>   ceil($commandes->getTotalItemCount() / 10)], 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             }
