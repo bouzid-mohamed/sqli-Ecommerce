@@ -204,7 +204,6 @@ class CategorieController extends AbstractController
                             $p->setDeletedAt(new \DateTime());
                             $entityManager = $this->getDoctrine()->getManager();
                             $entityManager->persist($p);
-
                             $entityManager->flush();
                         }
                     }
@@ -251,7 +250,7 @@ class CategorieController extends AbstractController
             $serializer = new Serializer($normalizers, $encoders);
 
             // On convertit en json
-            $jsonContent = $serializer->serialize($categories, 'json', [
+            $jsonContent = $serializer->serialize([$categories, 'entreprise' => $e], 'json', [
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 }

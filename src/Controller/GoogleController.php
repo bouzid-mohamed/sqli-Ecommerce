@@ -62,7 +62,7 @@ class GoogleController extends AbstractController
             );
         } else {
             return new RedirectResponse(
-                'http://localhost:3000/cart/' . $this->session->get('idE') . '?t=' . $this->JWTManager->create($this->getUser()), // might be the site, where users choose their oauth provider
+                'http://localhost:3000/' . $this->session->get('idE') . '/cart' . '?t=' . $this->JWTManager->create($this->getUser()), // might be the site, where users choose their oauth provider
                 Response::HTTP_TEMPORARY_REDIRECT
             );
 

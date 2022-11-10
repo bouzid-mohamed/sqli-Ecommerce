@@ -49,7 +49,7 @@ final class ForgotPasswordEventSubscriber extends AbstractController implements 
                 ->html($this->twig->render(
                     'ResetPassword/mail.html.twig',
                     [
-                        'reset_password_url' => sprintf('http://localhost:3000/forgot/%s' . '/' . $_GET["idE"], $passwordToken->getToken()),
+                        'reset_password_url' => sprintf('http://localhost:3000/'  . $_GET["idE"] . '/forgot/%s', $passwordToken->getToken()),
                     ]
                 ));
             $this->mailer->send($message);
