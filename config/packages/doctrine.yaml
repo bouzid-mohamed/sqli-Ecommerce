@@ -26,3 +26,4 @@ doctrine:
         DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
         MONTH: DoctrineExtensions\Query\Mysql\Month
         YEAR: DoctrineExtensions\Query\Mysql\Year
+        Field: DoctrineExtensions\Query\Mysql\Field

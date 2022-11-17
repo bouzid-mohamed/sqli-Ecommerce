@@ -127,6 +127,9 @@ listeProduit:
 getAllFilter:
   path: /api/entreprise/getAllFilter
   controller: App\Controller\ProduitController::getAllFilter
+getRelatedProducts:
+  path: /relatedProducts/{produit}/{entreprise}
+  controller: App\Controller\ProduitController::relatedProducts
 listeProduitnonpagination:
   path: /api/entreprise/produit/all
   controller: App\Controller\ProduitController::getAll
@@ -199,12 +202,24 @@ afficherEntrepriseFront:
 listeMedia:
   path: /api/entreprise/medias
   controller: App\Controller\MediaController::index
+listeInstagram:
+  path: /api/entreprise/instagram
+  controller: App\Controller\MediaController::InstagramSection
 getAllMedia:
   path: /show_medias/{id}
   controller: App\Controller\MediaController::getMediasEntreprise
 editMedia:
   path: /api/entreprise/media/edit/{id}
   controller: App\Controller\MediaController::editMedia
+addInstagram:
+  path: /api/entreprise/instagram/add
+  controller: App\Controller\MediaController::addInstagram
+InstagramSectionFront:
+  path: /instagramSection/{entreprise}
+  controller: App\Controller\MediaController::InstagramSectionFront
+deleteMediaa:
+  path: /api/entreprise/instagram/delete/{media}
+  controller: App\Controller\MediaController::deleteMedia
 showByIdMedia:
   path: /api/entreprise/media/show/{id}
   controller: App\Controller\MediaController::showByID

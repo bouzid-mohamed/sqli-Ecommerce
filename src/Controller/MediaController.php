@@ -32,7 +32,38 @@ class MediaController extends AbstractController
 
     public function index(): Response
     {
-        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $this->_security->getUser()));
+        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $this->_security->getUser(), 'nom' => ([1, 2, 3])));
+
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($medias, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+    public function InstagramSection(): Response
+    {
+
+        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $this->_security->getUser(), 'nom' => 4), ['id' => 'DESC'], 10);
 
 
         // On spécifie qu'on utilise l'encodeur JSON
@@ -61,9 +92,44 @@ class MediaController extends AbstractController
         return $response;
     }
 
+    public function InstagramSectionFront(?Entreprise $entreprise): Response
+    {
+
+        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $entreprise, 'nom' => 4), ['id' => 'DESC'], 10);
+
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($medias, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
+
+
+
     public function getMediasEntreprise(?Entreprise $entreprise): Response
     {
-        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $entreprise));
+        $medias = $this->getDoctrine()->getRepository(Media::class)->findBy(array('entreprise' => $entreprise, 'nom' => [1, 2, 3]));
 
 
         // On spécifie qu'on utilise l'encodeur JSON
@@ -144,6 +210,44 @@ class MediaController extends AbstractController
         }
     }
 
+    public function addInstagram(Request $request, ValidatorInterface $validator): Response
+    {
+        // On initialise le code de réponse
+
+        $media = new Media();
+        // On hydrate l'objet
+        // On hydrate l'objet
+        $media->setNom(4);
+        $media->setUrl($request->get('url'));
+        $media->setEntreprise($this->_security->getUser());
+        if ($request->files->get('assets')[0] != null) {
+            $image = $request->files->get('assets')[0];
+            $fichier = md5(uniqid()) . '.' . $image->guessExtension();
+            $image->move(
+                $this->getParameter('images_directory'),
+                $fichier
+            );
+            $media->setImage($fichier);
+        } else {
+            $media->setImage($media->getImage());
+        }
+        // On sauvegarde en base
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($media);
+        $entityManager->flush();
+        $encoders = [new JsonEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoders);
+        $jsonContent = $serializer->serialize($media, 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
+        $response = new Response($jsonContent);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
     public function showByID(?Media $media): Response
     {
         if (!$media) {
@@ -167,6 +271,20 @@ class MediaController extends AbstractController
             $response = new Response($jsonContent);
             $response->headers->set('Content-Type', 'application/json');
             return $response;
+        }
+    }
+
+    public function deleteMedia(Media $media)
+    {
+        if (!$media ||  $this->_security->getUser() != $media->getEntreprise() || $media->getNom() != 4) {
+            // On interdit l accés
+            $code = 403;
+            return new Response('error', $code);
+        } else {
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($media);
+            $entityManager->flush();
+            return new Response('ok', 200);
         }
     }
 }

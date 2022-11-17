@@ -379,6 +379,40 @@ class ProduitController extends AbstractController
         return $response;
     }
 
+    //get all filter 
+    // liste des stocks pour une entreprise
+    public function relatedProducts(?Produit $produit, ?Entreprise $entreprise): Response
+    {
+        $donnees = $this->getDoctrine()->getRepository(Produit::class)->relatedProducts($produit, $entreprise);
+
+        // On spécifie qu'on utilise l'encodeur JSON
+        $encoders = [new JsonEncoder()];
+
+        // On instancie le "normaliseur" pour convertir la collection en tableau
+        $normalizers = [new ObjectNormalizer()];
+
+        // On instancie le convertisseur
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // On convertit en json
+        $jsonContent = $serializer->serialize($donnees, 'json', [
+
+            'circular_reference_handler' => function ($object) {
+
+                return $object->getId();
+            }
+        ]);
+        // On instancie la réponse
+        $response = new Response($jsonContent);
+
+
+        // On ajoute l'entête HTTP
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On envoie la réponse
+        return $response;
+    }
+
 
     // liste des produits pour une entreprise (front)
     public function produitsEntreprise(?Entreprise $entreprise, PaginatorInterface $paginator, Request $request): Response
