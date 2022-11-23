@@ -102,8 +102,10 @@ class CommandeController extends AbstractController
                 $lc = new LigneCommande();
                 $lc->setQuantite($ligne->quantite);
                 $stock2 = $this->getDoctrine()->getRepository(Stock::class)->findOneBy(['id' => $ligne->id]);
+                $stock2->setQuantite($stock2->getQuantite() - $ligne->quantite);
                 $lc->setStock($stock2);
                 $lc->setCommande($commande);
+                $entityManager->persist($stock2);
                 $entityManager->persist($lc);
                 $entityManager->flush();
             }
